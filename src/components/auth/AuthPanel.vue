@@ -2,7 +2,7 @@
   <main class="auth-screen" :class="`auth-mode-${mode}`">
     <section v-if="mode === 'login'" class="auth-login-hero" aria-label="Welcome to Sonora">
       <a class="auth-hero-brand" href="/" aria-label="Sonora Music home">
-        <span class="auth-hero-logo"><q-icon name="play_arrow" /></span>
+        <img class="auth-hero-logo" src="/sonora-mark.svg" alt="" />
         <span>sonora<span class="auth-hero-brand-period">.</span></span>
       </a>
       <div class="auth-hero-copy">
@@ -27,9 +27,7 @@
       </div>
     </section>
     <section class="auth-card" :class="{ 'auth-card-signup': mode === 'signup' }">
-      <span class="auth-mode-icon">
-        <q-icon name="verified_user" />
-      </span>
+      <img class="auth-mode-icon" src="/sonora-mark.svg" alt="" />
       <h1>{{ panelTitle }}</h1>
       <p v-if="mode === 'forgot'" class="auth-description">{{ panelDescription }}</p>
 

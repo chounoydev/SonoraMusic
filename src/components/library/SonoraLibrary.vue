@@ -38,9 +38,7 @@
           <q-icon name="menu" />
         </button>
         <button class="ytm-brand" aria-label="Sonora Music home" @click="setView('Home')">
-          <div class="ytm-logo-badge light-green-badge">
-            <q-icon name="play_arrow" />
-          </div>
+          <img class="sonora-logo-mark" src="/sonora-mark.svg" alt="" />
           <div class="ytm-brand-label">
             <span class="ytm-brand-name">sonora</span>
             <span class="ytm-brand-sub light-green-sub">Music</span>
