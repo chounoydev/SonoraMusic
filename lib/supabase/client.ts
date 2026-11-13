@@ -12,7 +12,7 @@ export function getSupabaseClient(): SupabaseClient<Database> {
 
   if (!url || !anonKey || anonKey.toLocaleLowerCase().includes('your_')) {
     throw new Error(
-      'Authentication is not configured. Set VITE_SUPABASE_URL and a valid VITE_SUPABASE_ANON_KEY in your local .env file.',
+      'Authentication is not configured. Add VITE_SUPABASE_URL and a valid VITE_SUPABASE_ANON_KEY to your deployment environment (or local .env), then redeploy or restart the app.',
     );
   }
 

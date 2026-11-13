@@ -1,5 +1,31 @@
 <template>
   <main class="auth-screen" :class="`auth-mode-${mode}`">
+    <section v-if="mode === 'login'" class="auth-login-hero" aria-label="Welcome to Sonora">
+      <a class="auth-hero-brand" href="/" aria-label="Sonora Music home">
+        <span class="auth-hero-logo"><q-icon name="play_arrow" /></span>
+        <span>sonora<span class="auth-hero-brand-period">.</span></span>
+      </a>
+      <div class="auth-hero-copy">
+        <span class="auth-hero-eyebrow">YOUR MUSIC, IN ONE PLACE</span>
+        <h2>Make room<br />for the music.</h2>
+        <p>Pick up where you left off and make every listen your own.</p>
+        <div class="auth-hero-player" aria-hidden="true">
+          <div class="auth-hero-art"><q-icon name="headphones" /></div>
+          <div class="auth-hero-track">
+            <strong>A little more you</strong>
+            <span>Your library is waiting</span>
+          </div>
+          <div class="auth-hero-wave">
+            <i v-for="bar in 13" :key="bar" :style="{ '--bar': `${18 + ((bar * 17) % 29)}px` }" />
+          </div>
+        </div>
+      </div>
+      <div class="auth-hero-footer">
+        <span><q-icon name="queue_music" /> Your library</span>
+        <span><q-icon name="favorite_border" /> Your favorites</span>
+        <span><q-icon name="graphic_eq" /> Your sound</span>
+      </div>
+    </section>
     <section class="auth-card" :class="{ 'auth-card-signup': mode === 'signup' }">
       <span class="auth-mode-icon">
         <q-icon name="verified_user" />
