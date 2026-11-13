@@ -142,7 +142,9 @@
                 round
                 dense
                 :icon="showConfirmPassword ? 'visibility_off' : 'visibility'"
-                :aria-label="showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'"
+                :aria-label="
+                  showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'
+                "
                 @click="showConfirmPassword = !showConfirmPassword"
               />
             </template>
@@ -230,12 +232,23 @@
         Remember your password?
         <button type="button" @click="switchMode('login')">Back to sign in</button>
       </p>
+      <a
+        v-if="mode === 'login' && !Capacitor.isNativePlatform()"
+        class="auth-download"
+        href="/downloads/sonora-music.apk"
+        download="Sonora-Music.apk"
+      >
+        <q-icon name="download" />
+        <span>Download the Android app</span>
+      </a>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { useRoute, useRouter } from 'vue-router';
 import { getSupabaseClient } from '../../../lib/supabase/client';
 
@@ -261,6 +274,12 @@ const router = useRouter();
 const route = useRoute();
 const confirmationMessage = 'Check your email to confirm your account, then sign in.';
 const successMessage = ref(route.query.signup === 'confirmed' ? confirmationMessage : '');
+
+function getAuthRedirectUrl(flow: 'signup' | 'recovery' | 'login' | 'admin', webPath: string) {
+  return Capacitor.isNativePlatform()
+    ? `com.sonora.music://auth/callback?flow=${flow}`
+    : `${window.location.origin}${webPath}`;
+}
 
 onMounted(() => {
   if (route.query.signup === 'confirmed') {
@@ -334,7 +353,7 @@ async function submit() {
         email: email.value,
         password: password.value,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: getAuthRedirectUrl('signup', '/login?signup=confirmed'),
           data: {
             username: userName.value,
           },
@@ -359,7 +378,7 @@ async function submit() {
 
     if (mode.value === 'forgot') {
       const { error } = await auth.resetPasswordForEmail(email.value, {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: getAuthRedirectUrl('recovery', '/auth/reset-password'),
       });
       if (error) throw error;
       successMessage.value =
@@ -420,7 +439,9 @@ async function resendConfirmation() {
     const { error } = await getSupabaseClient().auth.resend({
       type: 'signup',
       email: email.value,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: getAuthRedirectUrl('signup', '/login?signup=confirmed'),
+      },
     });
     if (error) throw error;
     successMessage.value =
@@ -444,11 +465,21 @@ async function signInWithGoogle() {
   successMessage.value = '';
 
   try {
-    const { error } = await getSupabaseClient().auth.signInWithOAuth({
+    const redirectPath = route.path === '/admin' ? '/admin' : '/login';
+    const isNative = Capacitor.isNativePlatform();
+    const flow = route.path === '/admin' ? 'admin' : 'login';
+    const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: getAuthRedirectUrl(flow, redirectPath),
+        skipBrowserRedirect: isNative,
+      },
     });
     if (error) throw error;
+    if (isNative) {
+      if (!data.url) throw new Error('Supabase did not return a Google sign-in URL.');
+      await Browser.open({ url: data.url });
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : '';
     errorMessage.value = message.includes('provider is not enabled')

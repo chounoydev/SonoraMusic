@@ -52,6 +52,13 @@ declare module 'vue-router/auto-routes' {
       { path: ParamValue<false> },
       | never
     >,
+    '/admin': RouteRecordInfo<
+      '/admin',
+      '/admin',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/auth/reset-password': RouteRecordInfo<
       '/auth/reset-password',
       '/auth/reset-password',
@@ -117,6 +124,14 @@ declare module 'vue-router/auto-routes' {
         | never
       pathParamNames:
         | 'path'
+    }
+    'src/pages/admin.vue': {
+      routes:
+        | '/admin'
+      views:
+        | never
+      pathParamNames:
+        | never
     }
     'src/pages/auth/reset-password.vue': {
       routes:

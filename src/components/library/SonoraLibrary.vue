@@ -1,11 +1,25 @@
 <template>
-  <q-page class="sonora-page" :class="{ 'sonora-light': !darkMode, 'mobile-nav-open': sidebarOpen, 'sidebar-collapsed': !sidebarOpen }">
+  <q-page
+    class="sonora-page"
+    :class="{
+      'sonora-light': !darkMode,
+      'mobile-nav-open': sidebarOpen,
+      'sidebar-collapsed': !sidebarOpen,
+    }"
+  >
     <section v-if="!libraryReady" class="library-loading-overlay" role="status">
       <q-spinner v-if="!libraryLoadError" size="32px" />
       <q-icon v-else name="cloud_off" size="32px" />
-      <strong>{{ libraryLoadError ? 'Could not connect to your library' : 'Loading your library...' }}</strong>
+      <strong>{{
+        libraryLoadError ? 'Could not connect to your library' : 'Loading your library...'
+      }}</strong>
       <p v-if="libraryLoadError">{{ libraryLoadError }}</p>
-      <button v-if="libraryLoadError" class="outline-button" :disabled="libraryLoading" @click="loadLibrary">
+      <button
+        v-if="libraryLoadError"
+        class="outline-button"
+        :disabled="libraryLoading"
+        @click="loadLibrary"
+      >
         <q-spinner v-if="libraryLoading" size="16px" />
         <span v-else>Try again</span>
       </button>
@@ -43,28 +57,62 @@
             aria-label="Search songs, albums, artists, podcasts"
             @focus="openSearch"
           />
-          <button v-if="searchQuery" class="yt-clear-btn" aria-label="Clear search" @click.prevent="searchQuery = ''">
+          <button
+            v-if="searchQuery"
+            class="yt-clear-btn"
+            aria-label="Clear search"
+            @click.prevent="searchQuery = ''"
+          >
             <q-icon name="close" />
           </button>
         </label>
       </div>
       <div class="topbar-tools">
-        <button class="icon-utility yt-topbar-btn" aria-label="Cast to device"><q-icon name="cast" /></button>
-        <button class="icon-utility yt-topbar-btn" :aria-label="darkMode ? 'Switch to light theme' : 'Switch to dark theme'" @click="toggleTheme"><q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" /></button>
-        <button class="profile-avatar-btn yt-profile-btn" :aria-label="`Profile: ${props.userEmail}`" @click="profileMenu = !profileMenu">
+        <button class="icon-utility yt-topbar-btn" aria-label="Cast to device">
+          <q-icon name="cast" />
+        </button>
+        <button
+          class="icon-utility yt-topbar-btn"
+          :aria-label="darkMode ? 'Switch to light theme' : 'Switch to dark theme'"
+          @click="toggleTheme"
+        >
+          <q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" />
+        </button>
+        <button
+          class="profile-avatar-btn yt-profile-btn"
+          :aria-label="`Profile: ${props.userEmail}`"
+          @click="profileMenu = !profileMenu"
+        >
           <span>{{ props.userEmail.charAt(0).toLocaleUpperCase() || 'A' }}</span>
         </button>
         <div v-if="profileMenu" class="profile-popover yt-topbar-popover">
           <div class="popover-user-row">
-            <span class="profile-avatar">{{ props.userEmail.charAt(0).toLocaleUpperCase() || 'A' }}</span>
+            <span class="profile-avatar">{{
+              props.userEmail.charAt(0).toLocaleUpperCase() || 'A'
+            }}</span>
             <div class="popover-user-info">
               <strong>{{ listenerDisplayName }}</strong>
               <small>{{ props.userEmail }}</small>
             </div>
           </div>
           <div class="yt-nav-divider" />
-          <button @click="openTrackDialog(); profileMenu = false"><q-icon name="file_upload" /> Upload music</button>
-          <button @click="toggleTheme(); profileMenu = false"><q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" /> {{ darkMode ? 'Light appearance' : 'Dark appearance' }}</button>
+          <button
+            @click="
+              openTrackDialog();
+              profileMenu = false;
+            "
+          >
+            <q-icon name="file_upload" /> Upload music
+          </button>
+          <button
+            @click="
+              toggleTheme();
+              profileMenu = false;
+            "
+          >
+            <q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" />
+            {{ darkMode ? 'Light appearance' : 'Dark appearance' }}
+          </button>
           <button @click="$emit('sign-out')"><q-icon name="logout" /> Sign out</button>
         </div>
       </div>
@@ -75,6 +123,10 @@
       <aside v-if="sidebarOpen" id="sonora-sidebar" class="sonora-sidebar yt-sidebar">
         <nav class="side-navigation yt-navigation" aria-label="Main navigation">
           <div class="yt-nav-group">
+            <a v-if="props.isAdmin" class="side-link yt-nav-link" href="/admin">
+              <q-icon name="admin_panel_settings" class="yt-nav-icon" />
+              <span>Admin studio</span>
+            </a>
             <button
               class="side-link yt-nav-link"
               :class="{ active: activeView === 'Home' }"
@@ -93,17 +145,27 @@
             </button>
             <button
               class="side-link yt-nav-link"
+              :class="{ active: activeView === 'Sonora releases' }"
+              @click="setView('Sonora releases')"
+            >
+              <q-icon name="library_music" class="yt-nav-icon" />
+              <span>New releases</span>
+              <span v-if="publicCatalogTracks.length" class="side-count">
+                {{ publicCatalogTracks.length }}
+              </span>
+            </button>
+            <button
+              class="side-link yt-nav-link"
               :class="{ active: activeView === 'Your Library' || activeView === 'Library' }"
               @click="setView('Your Library')"
             >
               <q-icon name="collections_bookmark" class="yt-nav-icon" />
               <span>Library</span>
-              <span v-if="allLibraryTracks.length" class="side-count">{{ allLibraryTracks.length }}</span>
+              <span v-if="allLibraryTracks.length" class="side-count">{{
+                allLibraryTracks.length
+              }}</span>
             </button>
-            <button
-              class="side-link yt-nav-link"
-              @click="upgradeDialogOpen = true"
-            >
+            <button class="side-link yt-nav-link" @click="upgradeDialogOpen = true">
               <q-icon name="album" class="yt-nav-icon" />
               <span>Upgrade</span>
             </button>
@@ -116,6 +178,15 @@
               <span>Liked Songs</span>
               <span v-if="favoriteCount > 0" class="side-count">{{ favoriteCount }}</span>
             </button>
+            <a
+              v-if="!Capacitor.isNativePlatform()"
+              class="side-link yt-nav-link"
+              href="/downloads/sonora-music.apk"
+              download="Sonora-Music.apk"
+            >
+              <q-icon name="download" class="yt-nav-icon" />
+              <span>Download Android app</span>
+            </a>
           </div>
 
           <div class="yt-nav-divider" />
@@ -135,13 +206,20 @@
             <div v-if="playlists.length === 0" class="yt-playlist-empty">
               <small>No playlists yet</small>
             </div>
-            <div v-for="playlist in playlists" :key="playlist.id" class="folder-nav-item yt-playlist-item">
+            <div
+              v-for="playlist in playlists"
+              :key="playlist.id"
+              class="folder-nav-item yt-playlist-item"
+            >
               <button
                 class="side-link playlist-link yt-playlist-link"
                 :class="{ active: activeView === playlist.name }"
                 @click="setView(playlist.name)"
               >
-                <span class="playlist-swatch" :style="{ backgroundImage: `url('${playlist.coverUrl}')` }">
+                <span
+                  class="playlist-swatch"
+                  :style="{ backgroundImage: `url('${playlist.coverUrl}')` }"
+                >
                   <q-icon v-if="!playlist.coverUrl" name="queue_music" />
                 </span>
                 <span class="yt-playlist-title">{{ playlist.name }}</span>
@@ -161,7 +239,12 @@
           </div>
         </nav>
       </aside>
-      <button v-if="sidebarOpen" class="sidebar-backdrop" aria-label="Dismiss navigation overlay" @click="sidebarOpen = false" />
+      <button
+        v-if="sidebarOpen"
+        class="sidebar-backdrop"
+        aria-label="Dismiss navigation overlay"
+        @click="sidebarOpen = false"
+      />
 
       <main class="sonora-content">
         <div class="content-scroll">
@@ -188,7 +271,9 @@
                 </nav>
                 <div class="listen-again-heading">
                   <div class="listener-heading">
-                    <span class="listener-avatar">{{ props.userEmail.charAt(0).toLocaleUpperCase() || 'A' }}</span>
+                    <span class="listener-avatar">{{
+                      props.userEmail.charAt(0).toLocaleUpperCase() || 'A'
+                    }}</span>
                     <div>
                       <p>{{ listenerDisplayName }}</p>
                       <h1>Listen again</h1>
@@ -196,22 +281,44 @@
                   </div>
                   <div class="listen-again-controls">
                     <button class="yt-more-pill-btn" @click="setView('Your Library')">More</button>
-                    <button class="yt-arrow-btn" aria-label="Scroll tracks left" @click="scrollListenAgain(-1)"><q-icon name="chevron_left" /></button>
-                    <button class="yt-arrow-btn" aria-label="Scroll tracks right" @click="scrollListenAgain(1)"><q-icon name="chevron_right" /></button>
+                    <button
+                      class="yt-arrow-btn"
+                      aria-label="Scroll tracks left"
+                      @click="scrollListenAgain(-1)"
+                    >
+                      <q-icon name="chevron_left" />
+                    </button>
+                    <button
+                      class="yt-arrow-btn"
+                      aria-label="Scroll tracks right"
+                      @click="scrollListenAgain(1)"
+                    >
+                      <q-icon name="chevron_right" />
+                    </button>
                   </div>
                 </div>
-                <div v-if="homeListenAgainTracks.length" ref="listenAgainRow" class="listen-again-row">
+                <div
+                  v-if="homeListenAgainTracks.length"
+                  ref="listenAgainRow"
+                  class="listen-again-row"
+                >
                   <button
                     v-for="track in homeListenAgainTracks"
                     :key="track.id"
                     class="listen-again-card"
                     @click="playTrack(track)"
                   >
-                    <span class="listen-again-cover" :style="{ backgroundImage: `url('${track.coverUrl}')` }">
+                    <span
+                      class="listen-again-cover"
+                      :style="{ backgroundImage: `url('${track.coverUrl}')` }"
+                    >
                       <span class="listen-again-play"><q-icon name="play_arrow" /></span>
                     </span>
                     <strong>{{ track.title }}</strong>
-                    <small>{{ getArtistDisplayName(track) }}<span v-if="track.album"> · {{ track.album }}</span></small>
+                    <small
+                      >{{ getArtistDisplayName(track)
+                      }}<span v-if="track.album"> · {{ track.album }}</span></small
+                    >
                   </button>
                 </div>
                 <div v-else class="home-listen-empty">
@@ -222,8 +329,13 @@
 
               <section v-if="homeAlbums.length" class="dashboard-section home-albums-section">
                 <div class="section-heading">
-                  <div><p class="section-kicker">FROM YOUR COLLECTION</p><h2>Albums &amp; singles</h2></div>
-                  <button class="text-link" @click="setView('Your Library')">Your library <q-icon name="arrow_forward" /></button>
+                  <div>
+                    <p class="section-kicker">FROM YOUR COLLECTION</p>
+                    <h2>Albums &amp; singles</h2>
+                  </div>
+                  <button class="text-link" @click="setView('Your Library')">
+                    Your library <q-icon name="arrow_forward" />
+                  </button>
                 </div>
                 <div class="home-album-row">
                   <button
@@ -232,12 +344,66 @@
                     class="home-album-card"
                     @click="openAlbumSearch(album.name)"
                   >
-                    <span class="home-album-cover" :style="{ backgroundImage: `url('${album.coverUrl}')` }">
+                    <span
+                      class="home-album-cover"
+                      :style="{ backgroundImage: `url('${album.coverUrl}')` }"
+                    >
                       <span class="home-album-play"><q-icon name="play_arrow" /></span>
                     </span>
                     <strong>{{ album.name }}</strong>
                     <small>{{ album.artist || 'Unknown artist' }}</small>
                   </button>
+                </div>
+              </section>
+
+              <section class="dashboard-section public-releases-section">
+                <div class="section-heading">
+                  <div>
+                    <p class="section-kicker">FROM SONORA STUDIO</p>
+                    <h2>New releases</h2>
+                  </div>
+                  <button
+                    v-if="publicCatalogTracks.length"
+                    class="text-link"
+                    @click="setView('Sonora releases')"
+                  >
+                    View all <q-icon name="arrow_forward" />
+                  </button>
+                </div>
+                <div v-if="publicCatalogLoading" class="public-catalog-state" role="status">
+                  <q-spinner size="22px" /><span>Loading new releases…</span>
+                </div>
+                <div
+                  v-else-if="publicCatalogError"
+                  class="public-catalog-state public-catalog-error"
+                  role="alert"
+                >
+                  <span>{{ publicCatalogError }}</span>
+                  <button class="text-link" @click="loadPublicCatalog">Try again</button>
+                </div>
+                <div
+                  v-else-if="publicCatalogTracks.length"
+                  class="listen-again-row public-release-row"
+                >
+                  <button
+                    v-for="track in publicCatalogTracks.slice(0, 8)"
+                    :key="track.id"
+                    class="listen-again-card"
+                    @click="playPublicCatalogTrack(track)"
+                  >
+                    <span
+                      class="listen-again-cover"
+                      :style="{ backgroundImage: `url('${track.coverUrl}')` }"
+                    >
+                      <span class="listen-again-play"><q-icon name="play_arrow" /></span>
+                    </span>
+                    <strong>{{ track.title }}</strong>
+                    <small>{{ getArtistDisplayName(track) }}</small>
+                  </button>
+                </div>
+                <div v-else class="home-listen-empty">
+                  <q-icon name="queue_music" />
+                  <span>New music published by Sonora Studio will appear here.</span>
                 </div>
               </section>
             </template>
@@ -246,45 +412,98 @@
               <div>
                 <p class="overline">{{ greetingLabel }}</p>
                 <h1>{{ pageTitle }}<span>.</span></h1>
-                <p class="greeting-subtitle">Find your rhythm. There’s always something good to listen to.</p>
+                <p class="greeting-subtitle">
+                  Find your rhythm. There’s always something good to listen to.
+                </p>
               </div>
               <span class="date-note">CURATED FOR YOU <i /></span>
             </section>
 
             <template v-if="activeView === 'Search' || activeView === 'Discover'">
-              <section class="hero-feature" :style="{ backgroundImage: `linear-gradient(90deg, rgba(30,27,43,.98) 0%, rgba(40,33,53,.9) 43%, rgba(29,23,39,.12) 100%), url('${heroImage}')` }">
+              <section
+                class="hero-feature"
+                :style="{
+                  backgroundImage: `linear-gradient(90deg, rgba(30,27,43,.98) 0%, rgba(40,33,53,.9) 43%, rgba(29,23,39,.12) 100%), url('${heroImage}')`,
+                }"
+              >
                 <div class="hero-copy">
-                  <div class="hero-kicker"><span class="kicker-spark">✦</span> FEATURED PLAYLIST</div>
+                  <div class="hero-kicker">
+                    <span class="kicker-spark">✦</span> FEATURED PLAYLIST
+                  </div>
                   <h2>Feel everything.<br /><span>Play anything.</span></h2>
                   <p>A soundtrack for whatever the day brings.</p>
-                  <button class="hero-play" @click="playFeatured"><q-icon name="play_arrow" /> Listen now <q-icon name="arrow_forward" /></button>
+                  <button class="hero-play" @click="playFeatured">
+                    <q-icon name="play_arrow" /> Listen now <q-icon name="arrow_forward" />
+                  </button>
                 </div>
-                <div class="hero-pagination"><span class="pagination-active" /> <span /> <span /> <small>01 / 03</small></div>
+                <div class="hero-pagination">
+                  <span class="pagination-active" /> <span /> <span /> <small>01 / 03</small>
+                </div>
               </section>
 
               <section class="dashboard-section recent-section">
                 <div class="section-heading">
-                  <div><p class="section-kicker">PICK UP WHERE YOU LEFT OFF</p><h2>Recently played</h2></div>
-                  <button v-if="recentlyPlayedTracks.length" class="text-link" @click="clearListeningHistory">Clear history</button>
-                  <button class="text-link" @click="setView('Library')">See all <q-icon name="arrow_forward" /></button>
+                  <div>
+                    <p class="section-kicker">PICK UP WHERE YOU LEFT OFF</p>
+                    <h2>Recently played</h2>
+                  </div>
+                  <button
+                    v-if="recentlyPlayedTracks.length"
+                    class="text-link"
+                    @click="clearListeningHistory"
+                  >
+                    Clear history
+                  </button>
+                  <button class="text-link" @click="setView('Library')">
+                    See all <q-icon name="arrow_forward" />
+                  </button>
                 </div>
                 <div class="recent-grid">
-                  <button v-for="track in recentlyPlayedTracks" :key="track.id" class="recent-item" @click="playTrack(track)">
-                    <span class="recent-cover" :style="{ backgroundImage: `url('${track.coverUrl}')` }"><span class="cover-play"><q-icon name="play_arrow" /></span></span>
-                    <span class="recent-copy"><strong>{{ track.title }}</strong><small>{{ getArtistDisplayName(track) }}</small></span>
-                    <span class="recent-eq" :class="{ 'eq-playing': playingTrack?.id === track.id && isPlaying }"><i /><i /><i /></span>
+                  <button
+                    v-for="track in recentlyPlayedTracks"
+                    :key="track.id"
+                    class="recent-item"
+                    @click="playTrack(track)"
+                  >
+                    <span
+                      class="recent-cover"
+                      :style="{ backgroundImage: `url('${track.coverUrl}')` }"
+                      ><span class="cover-play"><q-icon name="play_arrow" /></span
+                    ></span>
+                    <span class="recent-copy"
+                      ><strong>{{ track.title }}</strong
+                      ><small>{{ getArtistDisplayName(track) }}</small></span
+                    >
+                    <span
+                      class="recent-eq"
+                      :class="{ 'eq-playing': playingTrack?.id === track.id && isPlaying }"
+                      ><i /><i /><i
+                    /></span>
                   </button>
                 </div>
               </section>
 
               <section class="dashboard-section mood-section">
                 <div class="section-heading">
-                  <div><p class="section-kicker">JUST FOR YOU</p><h2>Made for your mood</h2></div>
-                  <button class="text-link" @click="setView('Browse')">Explore more <q-icon name="arrow_forward" /></button>
+                  <div>
+                    <p class="section-kicker">JUST FOR YOU</p>
+                    <h2>Made for your mood</h2>
+                  </div>
+                  <button class="text-link" @click="setView('Browse')">
+                    Explore more <q-icon name="arrow_forward" />
+                  </button>
                 </div>
                 <div class="mood-grid">
-                  <button v-for="mix in moodMixes" :key="mix.title" class="mood-card" :style="{ backgroundImage: `${mix.shade}, url('${mix.image}')` }" @click="playMood(mix.mood)">
-                    <span class="mix-label">{{ mix.label }}</span><strong>{{ mix.title }}</strong><small>{{ mix.caption }}</small>
+                  <button
+                    v-for="mix in moodMixes"
+                    :key="mix.title"
+                    class="mood-card"
+                    :style="{ backgroundImage: `${mix.shade}, url('${mix.image}')` }"
+                    @click="playMood(mix.mood)"
+                  >
+                    <span class="mix-label">{{ mix.label }}</span
+                    ><strong>{{ mix.title }}</strong
+                    ><small>{{ mix.caption }}</small>
                     <span class="mix-play"><q-icon name="play_arrow" /></span>
                   </button>
                 </div>
@@ -293,91 +512,366 @@
 
             <section v-if="activeView === 'Home'" class="dashboard-section home-moods-section">
               <div class="section-heading">
-                <div><p class="section-kicker">PICK A FEELING</p><h2>Moods &amp; genres</h2></div>
-                <button class="text-link" @click="setView('Browse')">Explore all <q-icon name="arrow_forward" /></button>
+                <div>
+                  <p class="section-kicker">PICK A FEELING</p>
+                  <h2>Moods &amp; genres</h2>
+                </div>
+                <button class="text-link" @click="setView('Browse')">
+                  Explore all <q-icon name="arrow_forward" />
+                </button>
               </div>
               <div class="mood-grid">
-                <button v-for="mix in moodMixes" :key="mix.title" class="mood-card" :style="{ backgroundImage: `${mix.shade}, url('${mix.image}')` }" @click="playMood(mix.mood)">
-                  <span class="mix-label">{{ mix.label }}</span><strong>{{ mix.title }}</strong><small>{{ mix.caption }}</small>
+                <button
+                  v-for="mix in moodMixes"
+                  :key="mix.title"
+                  class="mood-card"
+                  :style="{ backgroundImage: `${mix.shade}, url('${mix.image}')` }"
+                  @click="playMood(mix.mood)"
+                >
+                  <span class="mix-label">{{ mix.label }}</span
+                  ><strong>{{ mix.title }}</strong
+                  ><small>{{ mix.caption }}</small>
                   <span class="mix-play"><q-icon name="play_arrow" /></span>
                 </button>
               </div>
             </section>
 
             <section v-if="activeView === 'Explore'" class="dashboard-section explore-section">
-              <div class="section-heading"><div><p class="section-kicker">FRESH FINDS</p><h2>Trending in Sonora</h2></div><button class="text-link" @click="setView('Your Library')">Open your library <q-icon name="arrow_forward" /></button></div>
-              <div class="entity-grid">
-                <button v-for="track in tracks.slice(0, 6)" :key="track.id" class="entity-card" @click="playTrack(track)">
-                  <span class="entity-cover" :style="{ backgroundImage: `url('${track.coverUrl}')` }" />
-                  <strong>{{ track.title }}</strong><small>{{ getArtistDisplayName(track) }} · {{ track.genre }}</small>
+              <div class="section-heading">
+                <div>
+                  <p class="section-kicker">FRESH FINDS</p>
+                  <h2>Trending in Sonora</h2>
+                </div>
+                <button class="text-link" @click="setView('Your Library')">
+                  Open your library <q-icon name="arrow_forward" />
                 </button>
               </div>
-              <div class="section-heading explore-subheading"><div><p class="section-kicker">MEET THE ARTISTS</p><h2>Popular artists</h2></div></div>
               <div class="entity-grid">
-                <button v-for="artist in artistResults.slice(0, 6)" :key="artist.name" class="entity-card" @click="openArtistSearch(artist.name)">
-                  <span class="entity-cover artist-cover" :style="{ backgroundImage: `url('${artist.coverUrl}')` }" />
-                  <strong>{{ artist.name }}</strong><small>Artist</small>
+                <button
+                  v-for="track in tracks.slice(0, 6)"
+                  :key="track.id"
+                  class="entity-card"
+                  @click="playTrack(track)"
+                >
+                  <span
+                    class="entity-cover"
+                    :style="{ backgroundImage: `url('${track.coverUrl}')` }"
+                  />
+                  <strong>{{ track.title }}</strong
+                  ><small>{{ getArtistDisplayName(track) }} · {{ track.genre }}</small>
+                </button>
+              </div>
+              <div class="section-heading explore-subheading">
+                <div>
+                  <p class="section-kicker">MEET THE ARTISTS</p>
+                  <h2>Popular artists</h2>
+                </div>
+              </div>
+              <div class="entity-grid">
+                <button
+                  v-for="artist in artistResults.slice(0, 6)"
+                  :key="artist.name"
+                  class="entity-card"
+                  @click="openArtistSearch(artist.name)"
+                >
+                  <span
+                    class="entity-cover artist-cover"
+                    :style="{ backgroundImage: `url('${artist.coverUrl}')` }"
+                  />
+                  <strong>{{ artist.name }}</strong
+                  ><small>Artist</small>
                 </button>
               </div>
             </section>
 
             <section class="dashboard-section popular-section">
               <div class="section-heading popular-heading">
-                <div><p class="section-kicker">ON EVERYONE’S RADAR</p><h2>{{ collectionHeading }}</h2></div>
-                <button v-if="activeView === 'Home' || activeView === 'Search'" class="text-link" @click="setView('Browse')">View all <q-icon name="arrow_forward" /></button>
+                <div>
+                  <p class="section-kicker">ON EVERYONE’S RADAR</p>
+                  <h2>{{ collectionHeading }}</h2>
+                </div>
+                <button
+                  v-if="activeView === 'Home' || activeView === 'Search'"
+                  class="text-link"
+                  @click="setView('Browse')"
+                >
+                  View all <q-icon name="arrow_forward" />
+                </button>
                 <div v-else-if="activePlaylist" class="playlist-header-actions">
-                  <button class="outline-button" @click="openPlaylistEditor(activePlaylist)"><q-icon name="edit" /> Edit playlist</button>
+                  <button class="outline-button" @click="openPlaylistEditor(activePlaylist)">
+                    <q-icon name="edit" /> Edit playlist
+                  </button>
                 </div>
               </div>
-              <nav v-if="activeView === 'Search' || activeView === 'Your Library'" class="collection-tabs" :aria-label="activeView === 'Search' ? 'Search result categories' : 'Library categories'">
-                <button v-for="category in collectionCategories" :key="category" :class="{ selected: category === currentCollectionCategory }" @click="selectCollectionCategory(category)">{{ category }}</button>
+              <nav
+                v-if="activeView === 'Search' || activeView === 'Your Library'"
+                class="collection-tabs"
+                :aria-label="
+                  activeView === 'Search' ? 'Search result categories' : 'Library categories'
+                "
+              >
+                <button
+                  v-for="category in collectionCategories"
+                  :key="category"
+                  :class="{ selected: category === currentCollectionCategory }"
+                  @click="selectCollectionCategory(category)"
+                >
+                  {{ category }}
+                </button>
               </nav>
+              <div
+                v-if="isPublicCatalogView && publicCatalogLoading"
+                class="public-catalog-state"
+                role="status"
+              >
+                <q-spinner size="22px" /><span>Loading new releases…</span>
+              </div>
+              <div
+                v-else-if="isPublicCatalogView && publicCatalogError"
+                class="public-catalog-state public-catalog-error"
+                role="alert"
+              >
+                <span>{{ publicCatalogError }}</span>
+                <button class="text-link" @click="loadPublicCatalog">Try again</button>
+              </div>
               <div v-if="showEntityGrid" class="entity-grid">
-                <button v-for="artist in currentCollectionCategory === 'Artists' ? visibleArtists : []" :key="artist.name" class="entity-card" @click="openArtistSearch(artist.name)">
-                  <span class="entity-cover artist-cover" :style="{ backgroundImage: `url('${artist.coverUrl}')` }" />
-                  <strong>{{ artist.name }}</strong><small>Artist · {{ artist.trackCount }} {{ artist.trackCount === 1 ? 'song' : 'songs' }}</small>
+                <button
+                  v-for="artist in currentCollectionCategory === 'Artists' ? visibleArtists : []"
+                  :key="artist.name"
+                  class="entity-card"
+                  @click="openArtistSearch(artist.name)"
+                >
+                  <span
+                    class="entity-cover artist-cover"
+                    :style="{ backgroundImage: `url('${artist.coverUrl}')` }"
+                  />
+                  <strong>{{ artist.name }}</strong
+                  ><small
+                    >Artist · {{ artist.trackCount }}
+                    {{ artist.trackCount === 1 ? 'song' : 'songs' }}</small
+                  >
                 </button>
-                <button v-for="album in currentCollectionCategory === 'Albums' ? visibleAlbums : []" :key="album.name" class="entity-card" @click="openAlbumSearch(album.name)">
-                  <span class="entity-cover" :style="{ backgroundImage: `url('${album.coverUrl}')` }" />
-                  <strong>{{ album.name }}</strong><small>{{ album.artist || 'Unknown artist' }} · {{ album.trackCount }} {{ album.trackCount === 1 ? 'song' : 'songs' }}</small>
+                <button
+                  v-for="album in currentCollectionCategory === 'Albums' ? visibleAlbums : []"
+                  :key="album.name"
+                  class="entity-card"
+                  @click="openAlbumSearch(album.name)"
+                >
+                  <span
+                    class="entity-cover"
+                    :style="{ backgroundImage: `url('${album.coverUrl}')` }"
+                  />
+                  <strong>{{ album.name }}</strong
+                  ><small
+                    >{{ album.artist || 'Unknown artist' }} · {{ album.trackCount }}
+                    {{ album.trackCount === 1 ? 'song' : 'songs' }}</small
+                  >
                 </button>
-                <button v-for="playlist in currentCollectionCategory === 'Playlists' ? visiblePlaylists : []" :key="playlist.id" class="entity-card" @click="setView(playlist.name)">
-                  <span class="entity-cover" :style="{ backgroundImage: `url('${playlist.coverUrl}')` }" />
-                  <strong>{{ playlist.name }}</strong><small>Playlist · {{ tracks.filter((track) => track.playlistIds.includes(playlist.id)).length }} songs</small>
+                <button
+                  v-for="playlist in currentCollectionCategory === 'Playlists'
+                    ? visiblePlaylists
+                    : []"
+                  :key="playlist.id"
+                  class="entity-card"
+                  @click="setView(playlist.name)"
+                >
+                  <span
+                    class="entity-cover"
+                    :style="{ backgroundImage: `url('${playlist.coverUrl}')` }"
+                  />
+                  <strong>{{ playlist.name }}</strong
+                  ><small
+                    >Playlist ·
+                    {{ tracks.filter((track) => track.playlistIds.includes(playlist.id)).length }}
+                    songs</small
+                  >
                 </button>
-                <p v-if="currentCollectionCategory === 'Podcasts' || entityResultCount === 0" class="no-results entity-empty">
-                  <q-icon name="search_off" /><strong>{{ currentCollectionCategory === 'Podcasts' ? 'Podcasts are not available yet' : 'No results found' }}</strong>
-                  <span>{{ currentCollectionCategory === 'Podcasts' ? 'Podcast discovery will be added in a future update.' : 'Try a different search or category.' }}</span>
+                <p
+                  v-if="currentCollectionCategory === 'Podcasts' || entityResultCount === 0"
+                  class="no-results entity-empty"
+                >
+                  <q-icon name="search_off" /><strong>{{
+                    currentCollectionCategory === 'Podcasts'
+                      ? 'Podcasts are not available yet'
+                      : 'No results found'
+                  }}</strong>
+                  <span>{{
+                    currentCollectionCategory === 'Podcasts'
+                      ? 'Podcast discovery will be added in a future update.'
+                      : 'Try a different search or category.'
+                  }}</span>
                 </p>
               </div>
               <template v-else>
-                <div class="table-toolbar">
+                <div
+                  v-if="!isPublicCatalogView || (!publicCatalogLoading && !publicCatalogError)"
+                  class="table-toolbar"
+                >
                   <span>{{ filteredTracks.length }} songs</span>
                   <div class="table-toolbar-actions">
-                    <button v-if="tracksNeedingAudio.length && !props.localOnly" class="text-link" @click="openBulkAudioDialog">
-                      <q-icon name="library_add" /> Attach audio ({{ tracksNeedingAudio.length }} missing)
+                    <button
+                      v-if="!isPublicCatalogView && tracksNeedingAudio.length && !props.localOnly"
+                      class="text-link"
+                      @click="openBulkAudioDialog"
+                    >
+                      <q-icon name="library_add" /> Attach audio ({{ tracksNeedingAudio.length }}
+                      missing)
                     </button>
-                    <label>Sort by <q-select v-model="sortMode" dense borderless emit-value map-options :options="sortOptions" aria-label="Sort tracks" /></label>
+                    <label
+                      >Sort by
+                      <q-select
+                        v-model="sortMode"
+                        dense
+                        borderless
+                        emit-value
+                        map-options
+                        :options="sortOptions"
+                        aria-label="Sort tracks"
+                    /></label>
                   </div>
                 </div>
-                <div class="track-table">
-                  <div class="track-table-head"><span>#</span><span>TITLE</span><span class="album-column">ALBUM</span><span class="duration-column"><q-icon name="schedule" /></span><span class="like-column" /></div>
-                  <div v-if="filteredTracks.length === 0" class="no-results"><q-icon name="music_off" /><strong>No tracks here yet</strong><span>Try another search or add a song to your library.</span></div>
-                  <div v-for="(track, index) in filteredTracks" :key="track.id" class="track-table-row" :class="{ 'playing-row': playingTrack?.id === track.id && isPlaying }" @dblclick="playTrack(track)">
-                    <button class="table-index" :aria-label="`Play ${track.title}`" @click="playTrack(track)"><span>{{ String(index + 1).padStart(2, '0') }}</span><q-icon :name="(playingTrack?.id === track.id && isPlaying) ? 'graphic_eq' : 'play_arrow'" /></button>
-                    <button class="table-title" @click="playTrack(track)"><span class="table-cover" :style="{ backgroundImage: `url('${track.coverUrl}')` }" /><span class="title-stack"><strong>{{ track.title }}</strong><small>{{ getArtistDisplayName(track) }}</small></span></button>
+                <div
+                  v-if="!isPublicCatalogView || (!publicCatalogLoading && !publicCatalogError)"
+                  class="track-table"
+                >
+                  <div class="track-table-head">
+                    <span>#</span><span>TITLE</span><span class="album-column">ALBUM</span
+                    ><span class="duration-column"><q-icon name="schedule" /></span
+                    ><span v-if="!isPublicCatalogView" class="like-column" />
+                  </div>
+                  <div v-if="filteredTracks.length === 0" class="no-results">
+                    <q-icon name="music_off" /><strong>{{
+                      isPublicCatalogView ? 'No new releases yet' : 'No tracks here yet'
+                    }}</strong
+                    ><span>{{
+                      isPublicCatalogView
+                        ? 'New music published by Sonora Studio will appear here.'
+                        : 'Try another search or add a song to your library.'
+                    }}</span>
+                  </div>
+                  <div
+                    v-for="(track, index) in filteredTracks"
+                    :key="track.id"
+                    class="track-table-row"
+                    :class="{ 'playing-row': playingTrack?.id === track.id && isPlaying }"
+                    @dblclick="playTrack(track)"
+                  >
+                    <button
+                      class="table-index"
+                      :aria-label="`Play ${track.title}`"
+                      @click="playTrack(track)"
+                    >
+                      <span>{{ String(index + 1).padStart(2, '0') }}</span
+                      ><q-icon
+                        :name="
+                          playingTrack?.id === track.id && isPlaying ? 'graphic_eq' : 'play_arrow'
+                        "
+                      />
+                    </button>
+                    <button class="table-title" @click="playTrack(track)">
+                      <span
+                        class="table-cover"
+                        :style="{ backgroundImage: `url('${track.coverUrl}')` }"
+                      /><span class="title-stack"
+                        ><strong>{{ track.title }}</strong
+                        ><small>{{ getArtistDisplayName(track) }}</small></span
+                      >
+                    </button>
                     <span class="table-album album-column">{{ track.album }}</span>
                     <span class="table-duration duration-column">{{ track.duration }}</span>
-                    <button class="table-like like-column" :class="{ liked: track.is_favorite }" :aria-label="track.is_favorite ? 'Unlike track' : 'Like track'" @click="toggleFavorite(track)"><q-icon :name="track.is_favorite ? 'favorite' : 'favorite_border'" /></button>
-                    <q-btn flat round dense icon="more_horiz" class="track-more" aria-label="Track actions"><q-menu><q-list dense class="track-menu"><q-item clickable v-close-popup @click="toggleFavorite(track)"><q-item-section>{{ track.is_favorite ? 'Remove from liked songs' : 'Add to liked songs' }}</q-item-section></q-item><q-item clickable v-close-popup @click="addToQueue(track)"><q-item-section>Add to queue</q-item-section></q-item><q-item v-if="track.isSeeded || isDemoCatalogTrack(track.title, track.artist)" clickable v-close-popup @click="linkYouTubeVideo(track)"><q-item-section>Link YouTube video</q-item-section></q-item><q-item v-for="playlist in playlists" :key="playlist.id" clickable v-close-popup @click="toggleTrackInPlaylist(track, playlist)"><q-item-section>{{ track.playlistIds.includes(playlist.id) ? 'Remove from' : 'Add to' }} {{ playlist.name }}</q-item-section></q-item><q-item v-if="track.artist.trim()" clickable v-close-popup @click="removeArtistCredit(track)"><q-item-section>Remove artist credit</q-item-section></q-item><q-item clickable v-close-popup @click="removeTrack(track)"><q-item-section class="remove-item">Remove from library</q-item-section></q-item></q-list></q-menu></q-btn>
+                    <button
+                      v-if="!isPublicCatalogView"
+                      class="table-like like-column"
+                      :class="{ liked: track.is_favorite }"
+                      :aria-label="track.is_favorite ? 'Unlike track' : 'Like track'"
+                      @click="toggleFavorite(track)"
+                    >
+                      <q-icon :name="track.is_favorite ? 'favorite' : 'favorite_border'" />
+                    </button>
+                    <q-btn
+                      v-if="!isPublicCatalogView"
+                      flat
+                      round
+                      dense
+                      icon="more_horiz"
+                      class="track-more"
+                      aria-label="Track actions"
+                      ><q-menu
+                        ><q-list dense class="track-menu"
+                          ><q-item clickable v-close-popup @click="toggleFavorite(track)"
+                            ><q-item-section>{{
+                              track.is_favorite ? 'Remove from liked songs' : 'Add to liked songs'
+                            }}</q-item-section></q-item
+                          ><q-item clickable v-close-popup @click="addToQueue(track)"
+                            ><q-item-section>Add to queue</q-item-section></q-item
+                          ><q-item
+                            v-if="track.isSeeded || isDemoCatalogTrack(track.title, track.artist)"
+                            clickable
+                            v-close-popup
+                            @click="openYouTubeSearch(track)"
+                            ><q-item-section>Find YouTube video</q-item-section></q-item
+                          ><q-item
+                            v-for="playlist in playlists"
+                            :key="playlist.id"
+                            clickable
+                            v-close-popup
+                            @click="toggleTrackInPlaylist(track, playlist)"
+                            ><q-item-section
+                              >{{
+                                track.playlistIds.includes(playlist.id) ? 'Remove from' : 'Add to'
+                              }}
+                              {{ playlist.name }}</q-item-section
+                            ></q-item
+                          ><q-item
+                            v-if="track.artist.trim()"
+                            clickable
+                            v-close-popup
+                            @click="removeArtistCredit(track)"
+                            ><q-item-section>Remove artist credit</q-item-section></q-item
+                          ><q-item clickable v-close-popup @click="removeTrack(track)"
+                            ><q-item-section class="remove-item"
+                              >Remove from library</q-item-section
+                            ></q-item
+                          ></q-list
+                        ></q-menu
+                      ></q-btn
+                    >
                   </div>
                 </div>
               </template>
             </section>
 
-            <section v-if="activeView === 'Home' || activeView === 'Search' || activeView === 'Discover' || activeView === 'Explore' || activeView === 'Browse'" class="dashboard-section genres-section">
-              <div class="section-heading"><div><p class="section-kicker">FIND YOUR FREQUENCY</p><h2>Explore by genre</h2></div><button class="text-link" @click="setView('Browse')">All genres <q-icon name="arrow_forward" /></button></div>
-              <div class="genre-grid"><button v-for="genre in genres" :key="genre.name" class="genre-tile" :style="{ background: genre.color }" @click="filterByGenre(genre.name)"><span>{{ genre.name }}</span><q-icon name="arrow_outward" /></button></div>
+            <section
+              v-if="
+                activeView === 'Home' ||
+                activeView === 'Search' ||
+                activeView === 'Discover' ||
+                activeView === 'Explore' ||
+                activeView === 'Browse'
+              "
+              class="dashboard-section genres-section"
+            >
+              <div class="section-heading">
+                <div>
+                  <p class="section-kicker">FIND YOUR FREQUENCY</p>
+                  <h2>Explore by genre</h2>
+                </div>
+                <button class="text-link" @click="setView('Browse')">
+                  All genres <q-icon name="arrow_forward" />
+                </button>
+              </div>
+              <div class="genre-grid">
+                <button
+                  v-for="genre in genres"
+                  :key="genre.name"
+                  class="genre-tile"
+                  :style="{ background: genre.color }"
+                  @click="filterByGenre(genre.name)"
+                >
+                  <span>{{ genre.name }}</span
+                  ><q-icon name="arrow_outward" />
+                </button>
+              </div>
             </section>
           </div>
         </div>
@@ -394,14 +888,16 @@
         <span class="now-playing-copy">
           <strong>{{ playingTrack?.title || 'Choose a track' }}</strong>
           <small>
-            {{ playingTrack ? getArtistDisplayName(playingTrack) : 'Your next soundtrack starts here' }}
+            {{
+              playingTrack ? getArtistDisplayName(playingTrack) : 'Your next soundtrack starts here'
+            }}
           </small>
         </span>
         <button
           class="player-like"
           :class="{ liked: playingTrack?.is_favorite }"
           :aria-label="playingTrack?.is_favorite ? 'Unlike current track' : 'Like current track'"
-          :disabled="!playingTrack"
+          :disabled="!playingTrack || isPublicCatalogTrack(playingTrack)"
           @click="playingTrack && toggleFavorite(playingTrack)"
         >
           <q-icon :name="playingTrack?.is_favorite ? 'favorite' : 'favorite_border'" />
@@ -409,52 +905,129 @@
       </div>
       <div class="player-controls">
         <div class="transport-buttons">
-          <button aria-label="Shuffle" :class="{ selected: shuffleOn }" @click="shuffleOn = !shuffleOn"><q-icon name="shuffle" /></button>
-          <button aria-label="Previous track" @click="stepTrack(-1)"><q-icon name="skip_previous" /></button>
-          <button class="main-play" :aria-label="isPlaying ? 'Pause' : 'Play'" @click="togglePlayback()">
+          <button
+            aria-label="Shuffle"
+            :class="{ selected: shuffleOn }"
+            @click="shuffleOn = !shuffleOn"
+          >
+            <q-icon name="shuffle" />
+          </button>
+          <button aria-label="Previous track" @click="stepTrack(-1)">
+            <q-icon name="skip_previous" />
+          </button>
+          <button
+            class="main-play"
+            :aria-label="isPlaying ? 'Pause' : 'Play'"
+            @click="togglePlayback()"
+          >
             <q-spinner v-if="isBuffering" size="20px" />
             <q-icon v-else :name="isPlaying ? 'pause' : 'play_arrow'" />
           </button>
           <button aria-label="Next track" @click="stepTrack(1)"><q-icon name="skip_next" /></button>
-          <button aria-label="Repeat" :class="{ selected: repeatOn }" @click="repeatOn = !repeatOn"><q-icon name="repeat" /></button>
+          <button aria-label="Repeat" :class="{ selected: repeatOn }" @click="repeatOn = !repeatOn">
+            <q-icon name="repeat" />
+          </button>
         </div>
         <div class="progress-row">
           <span>{{ elapsedLabel }}</span>
-          <input v-model.number="progress" type="range" min="0" max="100" aria-label="Track progress" @input="seekTrack" />
+          <input
+            v-model.number="progress"
+            type="range"
+            min="0"
+            max="100"
+            aria-label="Track progress"
+            @input="seekTrack"
+          />
           <span>{{ durationLabel }}</span>
         </div>
       </div>
-      <div class="player-options"><button aria-label="Lyrics" @click="expandedPlayerOpen = true; lyricsPanelOpen = true"><q-icon name="subtitles" /></button><button aria-label="Queue" @click="queueOpen = !queueOpen"><q-icon name="queue_music" /></button><button aria-label="Volume" @click="muted = !muted"><q-icon :name="muted ? 'volume_off' : 'volume_up'" /></button><input v-model.number="volume" type="range" min="0" max="100" aria-label="Volume" /><button aria-label="Expand player" @click="expandedPlayerOpen = true"><q-icon name="open_in_full" /></button></div>
+      <div class="player-options">
+        <button
+          aria-label="Lyrics"
+          @click="
+            expandedPlayerOpen = true;
+            lyricsPanelOpen = true;
+          "
+        >
+          <q-icon name="subtitles" /></button
+        ><button aria-label="Queue" @click="queueOpen = !queueOpen">
+          <q-icon name="queue_music" /></button
+        ><button aria-label="Volume" @click="muted = !muted">
+          <q-icon :name="muted ? 'volume_off' : 'volume_up'" /></button
+        ><input v-model.number="volume" type="range" min="0" max="100" aria-label="Volume" /><button
+          aria-label="Expand player"
+          @click="expandedPlayerOpen = true"
+        >
+          <q-icon name="open_in_full" />
+        </button>
+      </div>
       <div v-if="queueOpen" class="queue-popover">
-        <div class="queue-heading"><strong>Queue</strong><button aria-label="Close queue" @click="queueOpen = false"><q-icon name="close" /></button></div>
+        <div class="queue-heading">
+          <strong>Queue</strong
+          ><button aria-label="Close queue" @click="queueOpen = false">
+            <q-icon name="close" />
+          </button>
+        </div>
         <div v-if="playingTrack" class="queue-section-label">NOW PLAYING</div>
         <button v-if="playingTrack" class="queue-track" @click="playTrack(playingTrack)">
-          <span class="queue-cover" :style="{ backgroundImage: `url('${playingTrack.coverUrl}')` }" />
-          <span><strong>{{ playingTrack.title }}</strong><small>{{ getArtistDisplayName(playingTrack) }}</small></span>
+          <span
+            class="queue-cover"
+            :style="{ backgroundImage: `url('${playingTrack.coverUrl}')` }"
+          />
+          <span
+            ><strong>{{ playingTrack.title }}</strong
+            ><small>{{ getArtistDisplayName(playingTrack) }}</small></span
+          >
           <q-icon name="graphic_eq" />
         </button>
-        <div class="queue-section-label">NEXT UP <button v-if="queue.length" @click="clearQueue">Clear</button></div>
+        <div class="queue-section-label">
+          NEXT UP <button v-if="queue.length" @click="clearQueue">Clear</button>
+        </div>
         <p v-if="queue.length === 0" class="queue-empty">Your queue is empty.</p>
         <div v-for="(track, index) in queue" :key="`${track.id}-${index}`" class="queue-track">
           <button class="queue-track-play" @click="playQueuedTrack(index)">
             <span class="queue-cover" :style="{ backgroundImage: `url('${track.coverUrl}')` }" />
-            <span><strong>{{ track.title }}</strong><small>{{ getArtistDisplayName(track) }}</small></span>
+            <span
+              ><strong>{{ track.title }}</strong
+              ><small>{{ getArtistDisplayName(track) }}</small></span
+            >
             <q-icon name="play_arrow" />
           </button>
-          <button class="queue-track-remove" :aria-label="`Remove ${track.title} from queue`" @click="removeFromQueue(index)"><q-icon name="close" /></button>
+          <button
+            class="queue-track-remove"
+            :aria-label="`Remove ${track.title} from queue`"
+            @click="removeFromQueue(index)"
+          >
+            <q-icon name="close" />
+          </button>
         </div>
       </div>
     </footer>
 
     <!-- ===== EXPANDED FULL-SCREEN PLAYER ===== -->
+    <!-- Keep the player mounted while minimized so embedded YouTube playback continues. -->
     <Transition name="player-expand">
-      <div v-if="expandedPlayerOpen" class="expanded-player" role="dialog" aria-label="Now playing - expanded view">
-        <div class="ep-backdrop" :style="{ backgroundImage: `url('${playingTrack?.coverUrl || defaultCover}')` }" />
+      <div
+        v-show="expandedPlayerOpen"
+        class="expanded-player"
+        role="dialog"
+        aria-label="Now playing - expanded view"
+      >
+        <div
+          class="ep-backdrop"
+          :style="{ backgroundImage: `url('${playingTrack?.coverUrl || defaultCover}')` }"
+        />
         <div class="ep-backdrop-overlay" />
 
         <div class="ep-topbar">
-          <button v-if="!youtubeVideoId" class="ep-close" aria-label="Collapse player" @click="expandedPlayerOpen = false">
-            <q-icon name="keyboard_arrow_down" />
+          <button
+            class="ep-close ep-back-button"
+            aria-label="Back to library"
+            title="Back to your library (playback continues)"
+            @click="expandedPlayerOpen = false"
+          >
+            <q-icon name="arrow_back" />
+            <span>Back</span>
           </button>
           <div class="ep-topbar-center">
             <span class="ep-playing-from">NOW PLAYING</span>
@@ -467,14 +1040,26 @@
 
         <div class="ep-body">
           <div class="ep-art-section">
-            <div v-if="youtubeVideoId" ref="youtubePlayerContainer" class="ep-youtube-player" aria-label="YouTube music player" />
+            <div
+              v-if="youtubeVideoId"
+              ref="youtubePlayerContainer"
+              class="ep-youtube-player"
+              aria-label="YouTube music player"
+            />
             <template v-else>
               <div class="ep-vinyl-wrap" :class="{ 'ep-spinning': isPlaying }">
                 <div class="ep-vinyl-disc">
-                  <div class="ep-vinyl-center" :style="{ backgroundImage: `url('${playingTrack?.coverUrl || defaultCover}')` }" />
+                  <div
+                    class="ep-vinyl-center"
+                    :style="{ backgroundImage: `url('${playingTrack?.coverUrl || defaultCover}')` }"
+                  />
                 </div>
               </div>
-              <div class="ep-album-art" :class="{ 'ep-art-playing': isPlaying }" :style="{ backgroundImage: `url('${playingTrack?.coverUrl || defaultCover}')` }">
+              <div
+                class="ep-album-art"
+                :class="{ 'ep-art-playing': isPlaying }"
+                :style="{ backgroundImage: `url('${playingTrack?.coverUrl || defaultCover}')` }"
+              >
                 <div class="ep-art-overlay" />
               </div>
             </template>
@@ -483,15 +1068,21 @@
           <div class="ep-controls-section">
             <div class="ep-track-info">
               <div class="ep-track-meta">
-                <strong class="ep-track-title">{{ playingTrack?.title || 'Choose a track' }}</strong>
-                <span class="ep-track-artist">{{ playingTrack ? getArtistDisplayName(playingTrack) : '' }}</span>
-                <span v-if="playingTrack?.album" class="ep-track-album">{{ playingTrack.album }}</span>
+                <strong class="ep-track-title">{{
+                  playingTrack?.title || 'Choose a track'
+                }}</strong>
+                <span class="ep-track-artist">{{
+                  playingTrack ? getArtistDisplayName(playingTrack) : ''
+                }}</span>
+                <span v-if="playingTrack?.album" class="ep-track-album">{{
+                  playingTrack.album
+                }}</span>
               </div>
               <button
                 class="ep-like-btn"
                 :class="{ liked: playingTrack?.is_favorite }"
                 :aria-label="playingTrack?.is_favorite ? 'Unlike' : 'Like'"
-                :disabled="!playingTrack"
+                :disabled="!playingTrack || isPublicCatalogTrack(playingTrack)"
                 @click="playingTrack && toggleFavorite(playingTrack)"
               >
                 <q-icon :name="playingTrack?.is_favorite ? 'favorite' : 'favorite_border'" />
@@ -499,7 +1090,12 @@
             </div>
 
             <div class="ep-eq-bars" :class="{ 'ep-eq-active': isPlaying }">
-              <span v-for="i in 18" :key="i" class="ep-eq-bar" :style="{ animationDelay: `${(i * 0.07).toFixed(2)}s` }" />
+              <span
+                v-for="i in 18"
+                :key="i"
+                class="ep-eq-bar"
+                :style="{ animationDelay: `${(i * 0.07).toFixed(2)}s` }"
+              />
             </div>
 
             <div class="ep-progress-section">
@@ -522,20 +1118,34 @@
             </div>
 
             <div class="ep-transport">
-              <button class="ep-ctrl ep-ctrl-sm" :class="{ active: shuffleOn }" aria-label="Shuffle" @click="shuffleOn = !shuffleOn">
+              <button
+                class="ep-ctrl ep-ctrl-sm"
+                :class="{ active: shuffleOn }"
+                aria-label="Shuffle"
+                @click="shuffleOn = !shuffleOn"
+              >
                 <q-icon name="shuffle" />
               </button>
               <button class="ep-ctrl" aria-label="Previous" @click="stepTrack(-1)">
                 <q-icon name="skip_previous" />
               </button>
-              <button class="ep-ctrl ep-play-btn" :aria-label="isPlaying ? 'Pause' : 'Play'" @click="togglePlayback()">
+              <button
+                class="ep-ctrl ep-play-btn"
+                :aria-label="isPlaying ? 'Pause' : 'Play'"
+                @click="togglePlayback()"
+              >
                 <q-spinner v-if="isBuffering" size="28px" />
                 <q-icon v-else :name="isPlaying ? 'pause' : 'play_arrow'" />
               </button>
               <button class="ep-ctrl" aria-label="Next" @click="stepTrack(1)">
                 <q-icon name="skip_next" />
               </button>
-              <button class="ep-ctrl ep-ctrl-sm" :class="{ active: repeatOn }" aria-label="Repeat" @click="repeatOn = !repeatOn">
+              <button
+                class="ep-ctrl ep-ctrl-sm"
+                :class="{ active: repeatOn }"
+                aria-label="Repeat"
+                @click="repeatOn = !repeatOn"
+              >
                 <q-icon name="repeat" />
               </button>
             </div>
@@ -544,7 +1154,14 @@
               <button class="ep-vol-btn" aria-label="Toggle mute" @click="muted = !muted">
                 <q-icon :name="muted ? 'volume_off' : volume < 40 ? 'volume_down' : 'volume_up'" />
               </button>
-              <input v-model.number="volume" type="range" min="0" max="100" class="ep-volume" aria-label="Volume" />
+              <input
+                v-model.number="volume"
+                type="range"
+                min="0"
+                max="100"
+                class="ep-volume"
+                aria-label="Volume"
+              />
               <button class="ep-vol-btn" aria-label="Queue" @click="queueOpen = !queueOpen">
                 <q-icon name="queue_music" />
               </button>
@@ -553,7 +1170,10 @@
             <section class="ep-lyrics-panel" aria-label="Lyrics">
               <div class="ep-lyrics-heading">
                 <strong>Lyrics</strong>
-                <button :aria-label="lyricsPanelOpen ? 'Hide lyrics' : 'Show lyrics'" @click="lyricsPanelOpen = !lyricsPanelOpen">
+                <button
+                  :aria-label="lyricsPanelOpen ? 'Hide lyrics' : 'Show lyrics'"
+                  @click="lyricsPanelOpen = !lyricsPanelOpen"
+                >
                   <q-icon :name="lyricsPanelOpen ? 'expand_less' : 'expand_more'" />
                 </button>
               </div>
@@ -563,7 +1183,9 @@
                     v-for="(line, index) in timedLyrics"
                     :key="`${line.time}-${index}`"
                     :class="{ 'ep-lyric-active': index === activeLyricIndex }"
-                  >{{ line.text }}</p>
+                  >
+                    {{ line.text }}
+                  </p>
                 </template>
                 <p v-else-if="playingTrack?.lyricsText?.trim()" class="ep-plain-lyrics">
                   {{ playingTrack.lyricsText }}
@@ -580,20 +1202,48 @@
                 <button @click="queueOpen = false"><q-icon name="close" /></button>
               </div>
               <div v-if="playingTrack" class="ep-queue-section">NOW PLAYING</div>
-              <button v-if="playingTrack" class="ep-queue-item ep-queue-now" @click="playTrack(playingTrack)">
-                <span class="ep-qi-cover" :style="{ backgroundImage: `url('${playingTrack.coverUrl}')` }" />
-                <span class="ep-qi-info"><strong>{{ playingTrack.title }}</strong><small>{{ getArtistDisplayName(playingTrack) }}</small></span>
+              <button
+                v-if="playingTrack"
+                class="ep-queue-item ep-queue-now"
+                @click="playTrack(playingTrack)"
+              >
+                <span
+                  class="ep-qi-cover"
+                  :style="{ backgroundImage: `url('${playingTrack.coverUrl}')` }"
+                />
+                <span class="ep-qi-info"
+                  ><strong>{{ playingTrack.title }}</strong
+                  ><small>{{ getArtistDisplayName(playingTrack) }}</small></span
+                >
                 <q-icon name="graphic_eq" class="ep-qi-eq" />
               </button>
-              <div class="ep-queue-section">NEXT UP <button v-if="queue.length" @click="clearQueue">Clear</button></div>
+              <div class="ep-queue-section">
+                NEXT UP <button v-if="queue.length" @click="clearQueue">Clear</button>
+              </div>
               <p v-if="queue.length === 0" class="ep-queue-empty">Your queue is empty.</p>
-              <div v-for="(track, index) in queue" :key="`ep-${track.id}-${index}`" class="ep-queue-item">
+              <div
+                v-for="(track, index) in queue"
+                :key="`ep-${track.id}-${index}`"
+                class="ep-queue-item"
+              >
                 <button class="ep-qi-play" @click="playQueuedTrack(index)">
-                  <span class="ep-qi-cover" :style="{ backgroundImage: `url('${track.coverUrl}')` }" />
-                  <span class="ep-qi-info"><strong>{{ track.title }}</strong><small>{{ getArtistDisplayName(track) }}</small></span>
+                  <span
+                    class="ep-qi-cover"
+                    :style="{ backgroundImage: `url('${track.coverUrl}')` }"
+                  />
+                  <span class="ep-qi-info"
+                    ><strong>{{ track.title }}</strong
+                    ><small>{{ getArtistDisplayName(track) }}</small></span
+                  >
                   <q-icon name="play_arrow" />
                 </button>
-                <button class="ep-qi-remove" :aria-label="`Remove ${track.title} from queue`" @click="removeFromQueue(index)"><q-icon name="close" /></button>
+                <button
+                  class="ep-qi-remove"
+                  :aria-label="`Remove ${track.title} from queue`"
+                  @click="removeFromQueue(index)"
+                >
+                  <q-icon name="close" />
+                </button>
               </div>
             </div>
           </div>
@@ -619,7 +1269,13 @@
 
     <q-dialog v-model="trackDialogOpen" :position="$q.screen.lt.sm ? 'bottom' : 'standard'">
       <q-card class="sonora-dialog upload-dialog">
-        <q-card-section class="dialog-title-row"><div><small>ADD MUSIC TO YOUR LIBRARY</small><h3>Upload music</h3></div><q-btn flat round dense icon="close" aria-label="Close dialog" v-close-popup /></q-card-section>
+        <q-card-section class="dialog-title-row"
+          ><div>
+            <small>ADD MUSIC TO YOUR LIBRARY</small>
+            <h3>Upload music</h3>
+          </div>
+          <q-btn flat round dense icon="close" aria-label="Close dialog" v-close-popup
+        /></q-card-section>
         <q-form @submit.prevent="createTrack">
           <q-card-section class="dialog-fields">
             <section class="upload-file-panel" aria-labelledby="upload-file-heading">
@@ -630,16 +1286,48 @@
                   <p>Select the song you want to add.</p>
                 </div>
               </div>
-              <input ref="audioFileInput" class="audio-file-input" type="file" accept="audio/*" @change="selectAudioFile" />
-              <button type="button" class="outline-button audio-file-button" :class="{ 'has-file': Boolean(selectedAudioFile) }" @click="audioFileInput?.click()">
+              <input
+                ref="audioFileInput"
+                class="audio-file-input"
+                type="file"
+                accept="audio/*"
+                @change="selectAudioFile"
+              />
+              <button
+                type="button"
+                class="outline-button audio-file-button"
+                :class="{ 'has-file': Boolean(selectedAudioFile) }"
+                @click="audioFileInput?.click()"
+              >
                 <q-icon :name="selectedAudioFile ? 'audio_file' : 'upload_file'" />
-                <span class="audio-file-name">{{ selectedAudioFile ? `${selectedAudioFile.name} (${(selectedAudioFile.size / (1024 * 1024)).toFixed(1)} MB)` : 'Browse audio files' }}</span>
+                <span class="audio-file-name">{{
+                  selectedAudioFile
+                    ? `${selectedAudioFile.name} (${(selectedAudioFile.size / (1024 * 1024)).toFixed(1)} MB)`
+                    : 'Browse audio files'
+                }}</span>
               </button>
-              <button v-if="selectedAudioFile" type="button" class="audio-clear-btn" aria-label="Clear selected file" @click.stop="clearSelectedAudio">
+              <button
+                v-if="selectedAudioFile"
+                type="button"
+                class="audio-clear-btn"
+                aria-label="Clear selected file"
+                @click.stop="clearSelectedAudio"
+              >
                 <q-icon name="close" />
               </button>
-              <p class="audio-file-hint">Audio files up to 50 MB, or paste a direct audio URL or YouTube link below.</p>
-              <q-input v-model="trackForm.audioUrl" outlined stack-label dense label="Or audio / YouTube URL" placeholder="https://youtu.be/VIDEO_ID" hint="YouTube playback uses the visible embedded player." class="q-mt-sm" />
+              <p class="audio-file-hint">
+                Audio files up to 50 MB, or paste a direct audio URL or YouTube link below.
+              </p>
+              <q-input
+                v-model="trackForm.audioUrl"
+                outlined
+                stack-label
+                dense
+                label="Or audio / YouTube URL"
+                placeholder="https://youtu.be/VIDEO_ID"
+                hint="YouTube playback uses the visible embedded player."
+                class="q-mt-sm"
+              />
             </section>
 
             <section class="upload-details-panel" aria-labelledby="upload-details-heading">
@@ -651,20 +1339,90 @@
                 </div>
               </div>
               <div class="upload-detail-fields">
-                <q-input v-model="trackForm.title" outlined stack-label label="Song title *" placeholder="e.g. Night Drive" :rules="[requiredRule]" autofocus />
-                <q-input v-model="trackForm.artist" outlined stack-label label="Artist *" placeholder="e.g. Your artist name" :rules="[requiredRule]" />
-                <q-input v-model="trackForm.album" outlined stack-label label="Album" placeholder="Album name (optional)" />
-                <q-input v-model="trackForm.coverUrl" outlined stack-label persistent-hint label="Cover image URL" placeholder="https://example.com/cover.jpg" hint="Optional · Paste a direct link to an image." />
-                <q-input v-model="trackForm.lyricsText" outlined stack-label type="textarea" label="Lyrics (plain text)" hint="Only enter lyrics you own or are licensed to store." />
-                <q-input v-model="trackForm.lyricsLrc" outlined stack-label type="textarea" label="Timed lyrics (LRC, optional)" hint="Use timestamped lines such as [00:12.50] lyric text." />
-                <q-select v-model="trackForm.genre" outlined stack-label emit-value map-options label="Genre" :options="genres.map((genre) => ({ label: genre.name, value: genre.name }))" />
-                <q-select v-model="selectedPlaylistId" outlined stack-label clearable emit-value map-options label="Playlist" :options="playlists.map((playlist) => ({ label: playlist.name, value: playlist.id }))" />
+                <q-input
+                  v-model="trackForm.title"
+                  outlined
+                  stack-label
+                  label="Song title *"
+                  placeholder="e.g. Night Drive"
+                  :rules="[requiredRule]"
+                  autofocus
+                />
+                <q-input
+                  v-model="trackForm.artist"
+                  outlined
+                  stack-label
+                  label="Artist *"
+                  placeholder="e.g. Your artist name"
+                  :rules="[requiredRule]"
+                />
+                <q-input
+                  v-model="trackForm.album"
+                  outlined
+                  stack-label
+                  label="Album"
+                  placeholder="Album name (optional)"
+                />
+                <q-input
+                  v-model="trackForm.coverUrl"
+                  outlined
+                  stack-label
+                  persistent-hint
+                  label="Cover image URL"
+                  placeholder="https://example.com/cover.jpg"
+                  hint="Optional · Paste a direct link to an image."
+                />
+                <q-input
+                  v-model="trackForm.lyricsText"
+                  outlined
+                  stack-label
+                  type="textarea"
+                  label="Lyrics (plain text)"
+                  hint="Only enter lyrics you own or are licensed to store."
+                />
+                <q-input
+                  v-model="trackForm.lyricsLrc"
+                  outlined
+                  stack-label
+                  type="textarea"
+                  label="Timed lyrics (LRC, optional)"
+                  hint="Use timestamped lines such as [00:12.50] lyric text."
+                />
+                <q-select
+                  v-model="trackForm.genre"
+                  outlined
+                  stack-label
+                  emit-value
+                  map-options
+                  label="Genre"
+                  :options="genres.map((genre) => ({ label: genre.name, value: genre.name }))"
+                />
+                <q-select
+                  v-model="selectedPlaylistId"
+                  outlined
+                  stack-label
+                  clearable
+                  emit-value
+                  map-options
+                  label="Playlist"
+                  :options="
+                    playlists.map((playlist) => ({ label: playlist.name, value: playlist.id }))
+                  "
+                />
               </div>
             </section>
           </q-card-section>
           <q-card-actions align="right" class="dialog-actions">
             <q-btn flat no-caps label="Cancel" v-close-popup />
-            <q-btn unelevated no-caps :label="uploadingTrack ? 'Uploading…' : 'Upload music'" type="submit" class="lime-button" :loading="uploadingTrack" :disable="uploadingTrack" />
+            <q-btn
+              unelevated
+              no-caps
+              :label="uploadingTrack ? 'Uploading…' : 'Upload music'"
+              type="submit"
+              class="lime-button"
+              :loading="uploadingTrack"
+              :disable="uploadingTrack"
+            />
           </q-card-actions>
         </q-form>
       </q-card>
@@ -673,18 +1431,48 @@
     <q-dialog v-model="bulkAudioDialogOpen" :position="$q.screen.lt.sm ? 'bottom' : 'standard'">
       <q-card class="sonora-dialog upload-dialog bulk-audio-dialog">
         <q-card-section class="dialog-title-row">
-          <div><small>ADD AUDIO TO YOUR CATALOG</small><h3>Attach audio to existing songs</h3></div>
-          <q-btn flat round dense icon="close" aria-label="Close dialog" v-close-popup :disable="uploadingBulkAudio" />
+          <div>
+            <small>ADD AUDIO TO YOUR CATALOG</small>
+            <h3>Attach audio to existing songs</h3>
+          </div>
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            aria-label="Close dialog"
+            v-close-popup
+            :disable="uploadingBulkAudio"
+          />
         </q-card-section>
         <q-card-section class="bulk-audio-content">
-          <p>Choose audio files you own or are licensed to use. Sonora can match filenames to song titles; review or change each match before uploading. Files must be 50 MB or smaller.</p>
-          <input ref="bulkAudioInput" class="audio-file-input" type="file" accept="audio/*" multiple @change="selectBulkAudioFiles" />
-          <button type="button" class="outline-button audio-file-button" :disabled="uploadingBulkAudio" @click="bulkAudioInput?.click()">
+          <p>
+            Choose audio files you own or are licensed to use. Sonora can match filenames to song
+            titles; review or change each match before uploading. Files must be 50 MB or smaller.
+          </p>
+          <input
+            ref="bulkAudioInput"
+            class="audio-file-input"
+            type="file"
+            accept="audio/*"
+            multiple
+            @change="selectBulkAudioFiles"
+          />
+          <button
+            type="button"
+            class="outline-button audio-file-button"
+            :disabled="uploadingBulkAudio"
+            @click="bulkAudioInput?.click()"
+          >
             <q-icon name="library_music" />
             <span>Choose audio files</span>
           </button>
           <div v-if="bulkAudioAssignments.length" class="bulk-audio-list">
-            <div v-for="(assignment, index) in bulkAudioAssignments" :key="`${assignment.file.name}-${index}`" class="bulk-audio-row">
+            <div
+              v-for="(assignment, index) in bulkAudioAssignments"
+              :key="`${assignment.file.name}-${index}`"
+              class="bulk-audio-row"
+            >
               <div class="bulk-audio-file">
                 <strong>{{ assignment.file.name }}</strong>
                 <small>{{ (assignment.file.size / (1024 * 1024)).toFixed(1) }} MB</small>
@@ -700,23 +1488,146 @@
                 :options="bulkAudioOptionsFor(index)"
                 class="bulk-audio-track-select"
               />
-              <q-btn flat round dense icon="close" :aria-label="`Remove ${assignment.file.name}`" :disable="uploadingBulkAudio" @click="removeBulkAudioFile(index)" />
+              <q-btn
+                flat
+                round
+                dense
+                icon="close"
+                :aria-label="`Remove ${assignment.file.name}`"
+                :disable="uploadingBulkAudio"
+                @click="removeBulkAudioFile(index)"
+              />
             </div>
           </div>
           <p v-else class="bulk-audio-empty">No audio files selected yet.</p>
-          <p v-if="uploadingBulkAudio" class="bulk-audio-progress">Uploading {{ bulkAudioProgress }} of {{ bulkAudioAssignments.length }}… Keep this page open.</p>
+          <p v-if="uploadingBulkAudio" class="bulk-audio-progress">
+            Uploading {{ bulkAudioProgress }} of {{ bulkAudioAssignments.length }}… Keep this page
+            open.
+          </p>
         </q-card-section>
         <q-card-actions align="right" class="dialog-actions">
           <q-btn flat no-caps label="Cancel" v-close-popup :disable="uploadingBulkAudio" />
-          <q-btn unelevated no-caps :label="uploadingBulkAudio ? 'Uploading…' : bulkAudioNeedsSync ? 'Retry saving links' : 'Upload and attach'" class="lime-button" :loading="uploadingBulkAudio" :disable="!canUploadBulkAudio" @click="uploadBulkAudio" />
+          <q-btn
+            unelevated
+            no-caps
+            :label="
+              uploadingBulkAudio
+                ? 'Uploading…'
+                : bulkAudioNeedsSync
+                  ? 'Retry saving links'
+                  : 'Upload and attach'
+            "
+            class="lime-button"
+            :loading="uploadingBulkAudio"
+            :disable="!canUploadBulkAudio"
+            @click="uploadBulkAudio"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog
+      v-model="youtubeSearchDialogOpen"
+      :position="$q.screen.lt.sm ? 'bottom' : 'standard'"
+      @hide="onYouTubeSearchDialogHide"
+    >
+      <q-card class="sonora-dialog youtube-search-dialog">
+        <q-card-section class="dialog-title-row">
+          <div>
+            <small>YOUTUBE SEARCH</small>
+            <h3>Choose a recording</h3>
+            <p v-if="youtubeSearchTrack" class="youtube-search-track">
+              {{ youtubeSearchTrack.title }} · {{ getArtistDisplayName(youtubeSearchTrack) }}
+            </p>
+          </div>
+          <q-btn flat round dense icon="close" aria-label="Close dialog" v-close-popup />
+        </q-card-section>
+        <q-card-section class="youtube-search-content">
+          <div v-if="youtubeSearchLoading" class="youtube-search-status" role="status">
+            <q-spinner size="24px" />
+            <span>Searching for embeddable videos…</span>
+          </div>
+          <p v-else-if="youtubeSearchError" class="youtube-search-error" role="alert">
+            {{ youtubeSearchError }}
+          </p>
+          <p v-else-if="youtubeSearchResults.length === 0" class="youtube-search-empty">
+            No embeddable matches found. Try searching YouTube directly.
+          </p>
+          <div v-else class="youtube-search-results">
+            <button
+              v-for="result in youtubeSearchResults"
+              :key="result.videoId"
+              type="button"
+              class="youtube-search-result"
+              @click="selectYouTubeResult(result)"
+            >
+              <img v-if="result.thumbnailUrl" :src="result.thumbnailUrl" alt="" loading="lazy" />
+              <span class="youtube-search-result-copy">
+                <strong>{{ result.title }}</strong>
+                <small>{{ result.channelTitle }}</small>
+              </span>
+              <q-icon name="play_circle" size="24px" />
+            </button>
+          </div>
+        </q-card-section>
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn
+            flat
+            no-caps
+            label="Search YouTube directly"
+            @click="searchYouTubeInBrowser(youtubeSearchTrack)"
+          />
+          <q-btn flat no-caps label="Close" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
     <q-dialog v-model="playlistDialogOpen">
       <q-card class="sonora-dialog">
-        <q-card-section class="dialog-title-row"><div><small>MAKE IT YOURS</small><h3>{{ editingPlaylistId ? 'Edit playlist' : 'New playlist' }}</h3></div><q-btn flat round dense icon="close" aria-label="Close dialog" v-close-popup /></q-card-section>
-        <q-form @submit.prevent="savePlaylist"><q-card-section class="dialog-fields"><p class="form-required-note"><span>*</span> Required fields</p><q-input v-model="playlistName" outlined stack-label label="Playlist name *" placeholder="e.g. Sunday Slowdown" maxlength="32" autofocus :rules="[requiredRule]" /><q-input v-model="playlistCoverUrl" outlined stack-label persistent-hint label="Cover image URL" placeholder="https://example.com/cover.jpg" hint="Optional · Paste a direct link to an image." /></q-card-section><q-card-actions align="between" class="dialog-actions"><q-btn v-if="editingPlaylistId" flat no-caps label="Delete playlist" color="negative" @click="deletePlaylist()" /><q-space /><q-btn flat no-caps label="Cancel" v-close-popup /><q-btn unelevated no-caps :label="editingPlaylistId ? 'Save changes' : 'Create playlist'" type="submit" class="lime-button" /></q-card-actions></q-form>
+        <q-card-section class="dialog-title-row"
+          ><div>
+            <small>MAKE IT YOURS</small>
+            <h3>{{ editingPlaylistId ? 'Edit playlist' : 'New playlist' }}</h3>
+          </div>
+          <q-btn flat round dense icon="close" aria-label="Close dialog" v-close-popup
+        /></q-card-section>
+        <q-form @submit.prevent="savePlaylist"
+          ><q-card-section class="dialog-fields"
+            ><p class="form-required-note"><span>*</span> Required fields</p>
+            <q-input
+              v-model="playlistName"
+              outlined
+              stack-label
+              label="Playlist name *"
+              placeholder="e.g. Sunday Slowdown"
+              maxlength="32"
+              autofocus
+              :rules="[requiredRule]" /><q-input
+              v-model="playlistCoverUrl"
+              outlined
+              stack-label
+              persistent-hint
+              label="Cover image URL"
+              placeholder="https://example.com/cover.jpg"
+              hint="Optional · Paste a direct link to an image." /></q-card-section
+          ><q-card-actions align="between" class="dialog-actions"
+            ><q-btn
+              v-if="editingPlaylistId"
+              flat
+              no-caps
+              label="Delete playlist"
+              color="negative"
+              @click="deletePlaylist()" /><q-space /><q-btn
+              flat
+              no-caps
+              label="Cancel"
+              v-close-popup /><q-btn
+              unelevated
+              no-caps
+              :label="editingPlaylistId ? 'Save changes' : 'Create playlist'"
+              type="submit"
+              class="lime-button" /></q-card-actions
+        ></q-form>
       </q-card>
     </q-dialog>
 
@@ -759,7 +1670,15 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { Capacitor } from '@capacitor/core';
 import { useQuasar } from 'quasar';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import {
+  getPublicMusicAudioUrl,
+  loadPublicMusic,
+  type PublicMusicTrack,
+} from '@/services/public-music';
+import { searchYouTubeVideos, type YouTubeVideoResult } from '@/services/youtube-search';
 import {
   getListeningHistory,
   getPlaylists,
@@ -787,6 +1706,7 @@ import {
   verifyTrackAudioPaths,
   type TrackAudioPathStatus,
 } from '../../../lib/supabase/library';
+import { getSupabaseClient } from '../../../lib/supabase/client';
 
 interface YouTubePlayer {
   playVideo(): void;
@@ -828,17 +1748,47 @@ declare global {
   }
 }
 
-const props = withDefaults(defineProps<{ userId: string; userEmail: string; localOnly?: boolean }>(), {
-  localOnly: false,
-});
+const props = withDefaults(
+  defineProps<{ userId: string; userEmail: string; isAdmin?: boolean; localOnly?: boolean }>(),
+  {
+    isAdmin: false,
+    localOnly: false,
+  },
+);
 defineEmits<{ (event: 'sign-out'): void }>();
 const $q = useQuasar();
-const heroImage = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1800&q=90';
-const defaultCover = 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=320&q=80';
+const heroImage =
+  'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1800&q=90';
+const defaultCover =
+  'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=320&q=80';
 const moodMixes = [
-  { label: 'GOOD VIBES ONLY', title: 'After Hours', caption: 'For when the city slows down', mood: 'Late night', image: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85', shade: 'linear-gradient(90deg,rgba(14,18,35,.88),rgba(20,13,28,.1))' },
-  { label: 'SUNSET SESSIONS', title: 'Golden Hour', caption: 'A little warmth for your day', mood: 'Chill', image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85', shade: 'linear-gradient(90deg,rgba(35,22,21,.8),rgba(26,19,24,.12))' },
-  { label: 'MADE FOR YOU', title: 'Head in the Clouds', caption: 'Drift away for a while', mood: 'Focus', image: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=85', shade: 'linear-gradient(0deg,rgba(15,23,32,.8),rgba(18,24,32,.04))' },
+  {
+    label: 'GOOD VIBES ONLY',
+    title: 'After Hours',
+    caption: 'For when the city slows down',
+    mood: 'Late night',
+    image:
+      'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85',
+    shade: 'linear-gradient(90deg,rgba(14,18,35,.88),rgba(20,13,28,.1))',
+  },
+  {
+    label: 'SUNSET SESSIONS',
+    title: 'Golden Hour',
+    caption: 'A little warmth for your day',
+    mood: 'Chill',
+    image:
+      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85',
+    shade: 'linear-gradient(90deg,rgba(35,22,21,.8),rgba(26,19,24,.12))',
+  },
+  {
+    label: 'MADE FOR YOU',
+    title: 'Head in the Clouds',
+    caption: 'Drift away for a while',
+    mood: 'Focus',
+    image:
+      'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=85',
+    shade: 'linear-gradient(0deg,rgba(15,23,32,.8),rgba(18,24,32,.04))',
+  },
 ];
 const homeMoods = [
   { label: 'Relax', mood: 'Chill' },
@@ -853,17 +1803,38 @@ const homeMoods = [
   { label: 'Focus', mood: 'Focus' },
 ];
 const genres = [
-  { name: 'Pop', color: '#a46483' }, { name: 'OPM', color: '#a76654' }, { name: 'Rock', color: '#7865a5' },
-  { name: 'Hip-Hop', color: '#607ca0' }, { name: 'R&B', color: '#a76654' }, { name: 'Jazz', color: '#557b72' },
-  { name: 'Classical', color: '#7865a5' }, { name: 'Electronic', color: '#607ca0' }, { name: 'K-Pop', color: '#a46483' },
-  { name: 'Indie', color: '#7865a5' }, { name: 'Acoustic', color: '#92784f' }, { name: 'Lo-Fi', color: '#557b72' },
-  { name: 'Country', color: '#92784f' }, { name: 'Reggae', color: '#66824d' }, { name: 'Metal', color: '#665b70' },
-  { name: 'Alternative', color: '#7865a5' }, { name: 'Soul', color: '#a76654' }, { name: 'Blues', color: '#607ca0' },
+  { name: 'Pop', color: '#a46483' },
+  { name: 'OPM', color: '#a76654' },
+  { name: 'Rock', color: '#7865a5' },
+  { name: 'Hip-Hop', color: '#607ca0' },
+  { name: 'R&B', color: '#a76654' },
+  { name: 'Jazz', color: '#557b72' },
+  { name: 'Classical', color: '#7865a5' },
+  { name: 'Electronic', color: '#607ca0' },
+  { name: 'K-Pop', color: '#a46483' },
+  { name: 'Indie', color: '#7865a5' },
+  { name: 'Acoustic', color: '#92784f' },
+  { name: 'Lo-Fi', color: '#557b72' },
+  { name: 'Country', color: '#92784f' },
+  { name: 'Reggae', color: '#66824d' },
+  { name: 'Metal', color: '#665b70' },
+  { name: 'Alternative', color: '#7865a5' },
+  { name: 'Soul', color: '#a76654' },
+  { name: 'Blues', color: '#607ca0' },
 ];
-const sortOptions = [{ label: 'Default', value: 'default' }, { label: 'Title', value: 'title' }, { label: 'Artist', value: 'artist' }, { label: 'Recently added', value: 'recent' }];
+const sortOptions = [
+  { label: 'Default', value: 'default' },
+  { label: 'Title', value: 'title' },
+  { label: 'Artist', value: 'artist' },
+  { label: 'Recently added', value: 'recent' },
+];
 const searchCategories = ['All', 'Songs', 'Artists', 'Albums', 'Playlists'];
 const libraryCategories = ['Songs', 'Playlists', 'Albums', 'Artists', 'Podcasts'];
+const publicTrackIdPrefix = 'public-music:';
 const tracks = ref<MusicTrack[]>([]);
+const publicCatalogTracks = ref<MusicTrack[]>([]);
+const publicCatalogLoading = ref(false);
+const publicCatalogError = ref('');
 const playlists = ref<Playlist[]>([]);
 const listeningHistory = ref<ListeningHistoryItem[]>([]);
 const queue = ref<MusicTrack[]>([]);
@@ -884,6 +1855,7 @@ const audioFileInput = ref<HTMLInputElement | null>(null);
 const selectedAudioFile = ref<File | null>(null);
 const bulkAudioInput = ref<HTMLInputElement | null>(null);
 const bulkAudioAssignments = ref<{ file: File; trackId: string }[]>([]);
+const bulkAudioTargetTrackId = ref<string | null>(null);
 const bulkAudioProgress = ref(0);
 const bulkAudioNeedsSync = ref(false);
 const selectedPlaylistId = ref<string | null>(null);
@@ -902,6 +1874,7 @@ const audioCurrentTime = ref(0);
 const audioDurationSeconds = ref(0);
 let youtubePlayer: YouTubePlayer | undefined;
 let youtubeProgressTimer: ReturnType<typeof setInterval> | undefined;
+let publicCatalogChannel: RealtimeChannel | undefined;
 const profileMenu = ref(false);
 const sidebarOpen = ref(typeof window !== 'undefined' ? window.innerWidth > 700 : true);
 const listenAgainRow = ref<HTMLElement | null>(null);
@@ -910,13 +1883,28 @@ const expandedPlayerOpen = ref(false);
 const lyricsPanelOpen = ref(false);
 const trackDialogOpen = ref(false);
 const bulkAudioDialogOpen = ref(false);
+const youtubeSearchDialogOpen = ref(false);
+const youtubeSearchLoading = ref(false);
+const youtubeSearchError = ref('');
+const youtubeSearchResults = ref<YouTubeVideoResult[]>([]);
+const youtubeSearchTrack = ref<MusicTrack | null>(null);
 const playlistDialogOpen = ref(false);
 const upgradeDialogOpen = ref(false);
 const selectedMood = ref<string | null>(null);
 const playlistName = ref('');
 const playlistCoverUrl = ref('');
 const editingPlaylistId = ref<string | null>(null);
-const trackForm = reactive<NewTrack>({ title: '', artist: '', album: '', coverUrl: '', genre: 'Indie', mood: 'Chill', audioUrl: '', lyricsText: '', lyricsLrc: '' });
+const trackForm = reactive<NewTrack>({
+  title: '',
+  artist: '',
+  album: '',
+  coverUrl: '',
+  genre: 'Indie',
+  mood: 'Chill',
+  audioUrl: '',
+  lyricsText: '',
+  lyricsLrc: '',
+});
 const requiredRule = (value: string) => Boolean(value?.trim()) || 'This field is required';
 let librarySaveTimer: ReturnType<typeof setTimeout> | undefined;
 let playbackGeneration = 0;
@@ -924,6 +1912,8 @@ let storageRefreshAttemptedTrackId = '';
 let playbackFailureNotifiedTrackId = '';
 let youtubeApiPromise: Promise<YouTubeApi> | undefined;
 let youtubePlayerVideoId = '';
+let youtubeSearchController: AbortController | undefined;
+let youtubeSearchRequestId = 0;
 const maxAudioFileSize = 50 * 1024 * 1024;
 
 const listenerDisplayName = computed(() => {
@@ -933,27 +1923,55 @@ const listenerDisplayName = computed(() => {
   return props.userEmail ? props.userEmail.split('@')[0]?.toUpperCase() : 'ANGORING JR EDWIN G.';
 });
 
-const favoriteCount = computed(() => tracks.value.filter((track: MusicTrack) => track.is_favorite).length);
-const tracksNeedingAudio = computed(() => tracks.value.filter((track) => {
-  const status = storageAudioStatuses.value.find((item) => item.trackId === track.id)?.status;
-  return (!track.audioPath && !track.audioUrl) || status === 'missing' || status === 'wrong-bucket';
-}));
-const canUploadBulkAudio = computed(() =>
-  !props.localOnly &&
-  !uploadingBulkAudio.value &&
-  (bulkAudioNeedsSync.value || (
-    bulkAudioAssignments.value.length > 0 &&
-    bulkAudioAssignments.value.every((assignment) => Boolean(assignment.trackId)) &&
-    new Set(bulkAudioAssignments.value.map((assignment) => assignment.trackId)).size === bulkAudioAssignments.value.length
-  )),
+const favoriteCount = computed(
+  () => tracks.value.filter((track: MusicTrack) => track.is_favorite).length,
 );
-const activePlaylist = computed(() => playlists.value.find((playlist) => playlist.name === activeView.value));
+const tracksNeedingAudio = computed(() =>
+  tracks.value.filter((track) => {
+    const status = storageAudioStatuses.value.find((item) => item.trackId === track.id)?.status;
+    return (
+      (!track.audioPath && !track.audioUrl) || status === 'missing' || status === 'wrong-bucket'
+    );
+  }),
+);
+const canUploadBulkAudio = computed(
+  () =>
+    !props.localOnly &&
+    !uploadingBulkAudio.value &&
+    (bulkAudioNeedsSync.value ||
+      (bulkAudioAssignments.value.length > 0 &&
+        bulkAudioAssignments.value.every((assignment) => Boolean(assignment.trackId)) &&
+        new Set(bulkAudioAssignments.value.map((assignment) => assignment.trackId)).size ===
+          bulkAudioAssignments.value.length)),
+);
+const activePlaylist = computed(() =>
+  playlists.value.find((playlist) => playlist.name === activeView.value),
+);
+const isPublicCatalogView = computed(() => activeView.value === 'Sonora releases');
 
 const greetingLabel = computed(() => {
   const hour = new Date().getHours();
-  return hour < 12 ? 'YOUR DAILY SOUNDTRACK' : hour < 18 ? 'YOUR DAILY SOUNDTRACK' : 'YOUR DAILY SOUNDTRACK';
+  return hour < 12
+    ? 'YOUR DAILY SOUNDTRACK'
+    : hour < 18
+      ? 'YOUR DAILY SOUNDTRACK'
+      : 'YOUR DAILY SOUNDTRACK';
 });
-const pageTitle = computed(() => activeView.value === 'Home' ? `Good evening, ${props.userEmail.split('@')[0] || 'listener'}` : activeView.value === 'Search' ? 'Find your next favorite' : activeView.value === 'Browse' ? 'Explore something new' : activeView.value === 'Liked Songs' ? 'Your liked songs' : activeView.value === 'Your Library' || activeView.value === 'Library' ? 'Your library' : activeView.value);
+const pageTitle = computed(() =>
+  activeView.value === 'Home'
+    ? `Good evening, ${props.userEmail.split('@')[0] || 'listener'}`
+    : activeView.value === 'Search'
+      ? 'Find your next favorite'
+      : activeView.value === 'Browse'
+        ? 'Explore something new'
+        : activeView.value === 'Liked Songs'
+          ? 'Your liked songs'
+          : activeView.value === 'Your Library' || activeView.value === 'Library'
+            ? 'Your library'
+            : activeView.value === 'Sonora releases'
+              ? 'New releases'
+              : activeView.value,
+);
 const collectionCategories = computed(() =>
   activeView.value === 'Search' ? searchCategories : libraryCategories,
 );
@@ -961,9 +1979,12 @@ const currentCollectionCategory = computed(() =>
   activeView.value === 'Search' ? searchCategory.value : libraryCategory.value,
 );
 const collectionHeading = computed(() => {
+  if (isPublicCatalogView.value) return 'New releases';
   if (activeView.value === 'Search') return searchQuery.value ? 'Search results' : 'Search Sonora';
   if (activeView.value === 'Your Library' || activeView.value === 'Library') {
-    return libraryCategory.value === 'Songs' ? 'Your songs' : `Your ${libraryCategory.value.toLocaleLowerCase()}`;
+    return libraryCategory.value === 'Songs'
+      ? 'Your songs'
+      : `Your ${libraryCategory.value.toLocaleLowerCase()}`;
   }
   if (activeView.value === 'Browse') return 'Explore by genre';
   if (activeView.value === 'Explore') return 'Discover new music';
@@ -983,18 +2004,34 @@ const allLibraryTracks = computed<MusicTrack[]>(() => tracks.value);
 
 const filteredTracks = computed(() => {
   const query = searchQuery.value.trim().toLocaleLowerCase();
-  const source = allLibraryTracks.value;
+  const source = isPublicCatalogView.value ? publicCatalogTracks.value : allLibraryTracks.value;
   let result = source.filter((track: MusicTrack) => {
-    const inPlaylist = playlists.value.find((playlist: Playlist) => playlist.name === activeView.value);
-    const matchesView = activeView.value === 'Liked Songs' ? track.is_favorite : inPlaylist ? track.playlistIds.includes(inPlaylist.id) : true;
-    const matchesMood = !selectedMood.value || track.mood === selectedMood.value;
-    const matchesSearch = !query || `${track.title} ${getArtistDisplayName(track)} ${track.album} ${track.genre}`.toLocaleLowerCase().includes(query);
+    const inPlaylist = playlists.value.find(
+      (playlist: Playlist) => playlist.name === activeView.value,
+    );
+    const matchesView = isPublicCatalogView.value
+      ? true
+      : activeView.value === 'Liked Songs'
+        ? track.is_favorite
+        : inPlaylist
+          ? track.playlistIds.includes(inPlaylist.id)
+          : true;
+    const matchesMood =
+      isPublicCatalogView.value || !selectedMood.value || track.mood === selectedMood.value;
+    const matchesSearch =
+      !query ||
+      `${track.title} ${getArtistDisplayName(track)} ${track.album} ${track.genre}`
+        .toLocaleLowerCase()
+        .includes(query);
     return matchesView && matchesMood && matchesSearch;
   });
   result = [...result];
-  if (sortMode.value === 'title') result.sort((a: MusicTrack, b: MusicTrack) => a.title.localeCompare(b.title));
-  if (sortMode.value === 'artist') result.sort((a: MusicTrack, b: MusicTrack) => a.artist.localeCompare(b.artist));
-  if (sortMode.value === 'recent') result.sort((a: MusicTrack, b: MusicTrack) => b.createdAt.localeCompare(a.createdAt));
+  if (sortMode.value === 'title')
+    result.sort((a: MusicTrack, b: MusicTrack) => a.title.localeCompare(b.title));
+  if (sortMode.value === 'artist')
+    result.sort((a: MusicTrack, b: MusicTrack) => a.artist.localeCompare(b.artist));
+  if (sortMode.value === 'recent')
+    result.sort((a: MusicTrack, b: MusicTrack) => b.createdAt.localeCompare(a.createdAt));
   return result;
 });
 const artistResults = computed(() => {
@@ -1054,7 +2091,9 @@ const visiblePlaylists = computed(() => {
     return tracks.value.some(
       (track) =>
         track.playlistIds.includes(playlist.id) &&
-        `${track.title} ${getArtistDisplayName(track)} ${track.album}`.toLocaleLowerCase().includes(query),
+        `${track.title} ${getArtistDisplayName(track)} ${track.album}`
+          .toLocaleLowerCase()
+          .includes(query),
     );
   });
 });
@@ -1180,7 +2219,8 @@ function createYouTubePlayer(api: YouTubeApi, videoId: string) {
         if (
           youtubePlayerVideoId !== videoId ||
           getYouTubeVideoId(playingTrack.value?.audioUrl) !== videoId
-        ) return;
+        )
+          return;
         if (event.data === api.PlayerState.PLAYING) {
           isPlaying.value = true;
           isBuffering.value = false;
@@ -1203,7 +2243,8 @@ function createYouTubePlayer(api: YouTubeApi, videoId: string) {
         if (
           youtubePlayerVideoId !== videoId ||
           getYouTubeVideoId(playingTrack.value?.audioUrl) !== videoId
-        ) return;
+        )
+          return;
         const track = playingTrack.value;
         if (track) reportPlaybackFailure(track, new Error('YouTube could not play this video.'));
       },
@@ -1217,106 +2258,152 @@ onMounted(() => {
   sidebarOpen.value = window.matchMedia('(min-width: 701px)').matches;
   if (audioElement.value) audioElement.value.volume = volume.value / 100;
   void loadLibrary();
+  if (!props.localOnly) {
+    void loadPublicCatalog();
+    try {
+      publicCatalogChannel = getSupabaseClient()
+        .channel('public-music-library')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'public_music' },
+          () => void loadPublicCatalog(),
+        )
+        .subscribe();
+    } catch (error) {
+      publicCatalogError.value =
+        error instanceof Error ? error.message : 'Unable to watch new Sonora releases.';
+    }
+  }
   window.addEventListener('keydown', onShortcut);
   window.addEventListener('keydown', onEscKey);
 });
 
-watch([playingTrack, isPlaying], async ([track, shouldPlay], [previousTrack]) => {
-  const audio = audioElement.value;
-  if (!audio) return;
-  if (!track) {
-    playbackGeneration += 1;
-    audio.pause();
-    audio.removeAttribute('src');
-    youtubePlayer?.destroy();
-    youtubePlayer = undefined;
-    youtubePlayerVideoId = '';
-    stopYouTubeProgressUpdates();
-    audioDurationSeconds.value = 0;
-    audioCurrentTime.value = 0;
-    return;
-  }
-
-  const videoId = getYouTubeVideoId(track.audioUrl);
-  if (videoId) {
-    audio.pause();
-    const generation = ++playbackGeneration;
-    expandedPlayerOpen.value = true;
-    if (!shouldPlay) {
-      isBuffering.value = false;
+watch(
+  [playingTrack, isPlaying],
+  async ([track, shouldPlay], [previousTrack]) => {
+    const audio = audioElement.value;
+    if (!audio) return;
+    if (!track) {
+      playbackGeneration += 1;
+      audio.pause();
+      audio.removeAttribute('src');
+      youtubePlayer?.destroy();
+      youtubePlayer = undefined;
+      youtubePlayerVideoId = '';
       stopYouTubeProgressUpdates();
-      youtubePlayer?.pauseVideo();
+      audioDurationSeconds.value = 0;
+      audioCurrentTime.value = 0;
       return;
     }
-    if (track.id !== previousTrack?.id) {
-      isBuffering.value = true;
+
+    const videoId = getYouTubeVideoId(track.audioUrl);
+    if (videoId) {
+      audio.pause();
+      const generation = ++playbackGeneration;
+      expandedPlayerOpen.value = true;
+      if (!shouldPlay) {
+        isBuffering.value = false;
+        stopYouTubeProgressUpdates();
+        youtubePlayer?.pauseVideo();
+        return;
+      }
+      if (track.id !== previousTrack?.id) {
+        isBuffering.value = true;
+        audioCurrentTime.value = 0;
+        audioDurationSeconds.value = 0;
+        elapsedSeconds.value = 0;
+        progress.value = 0;
+      }
+      try {
+        await nextTick();
+        const api = await loadYouTubeApi();
+        if (
+          generation !== playbackGeneration ||
+          playingTrack.value?.id !== track.id ||
+          !isPlaying.value
+        )
+          return;
+        if (!youtubePlayer || youtubePlayerVideoId !== videoId) {
+          youtubePlayer?.destroy();
+          createYouTubePlayer(api, videoId);
+        } else {
+          youtubePlayer.playVideo();
+        }
+      } catch (error) {
+        if (generation === playbackGeneration) reportPlaybackFailure(track, error);
+      }
+      return;
+    }
+
+    if (youtubePlayer) {
+      youtubePlayer.destroy();
+      youtubePlayer = undefined;
+      youtubePlayerVideoId = '';
+      stopYouTubeProgressUpdates();
+    }
+
+    const isCatalogTrack = track.isSeeded || isDemoCatalogTrack(track.title, track.artist);
+    const hasAudio = Boolean(
+      track.audioPath || getYouTubeVideoId(track.audioUrl) || resolveTrackAudioUrl(track.audioUrl),
+    );
+    if (shouldPlay && isCatalogTrack && !hasAudio) {
+      playbackGeneration += 1;
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      isBuffering.value = false;
+      isPlaying.value = false;
       audioCurrentTime.value = 0;
       audioDurationSeconds.value = 0;
-      elapsedSeconds.value = 0;
       progress.value = 0;
+      elapsedSeconds.value = 0;
+      expandedPlayerOpen.value = false;
+      openYouTubeSearch(track);
+      return;
+    }
+
+    if (!shouldPlay) {
+      playbackGeneration += 1;
+      audio.pause();
+      return;
+    }
+
+    const isNewTrack = track.id !== previousTrack?.id;
+    const generation = ++playbackGeneration;
+    if (isNewTrack) {
+      audio.pause();
+      storageRefreshAttemptedTrackId = '';
+      playbackFailureNotifiedTrackId = '';
+      audioCurrentTime.value = 0;
+      audioDurationSeconds.value = 0;
+      progress.value = 0;
+      elapsedSeconds.value = 0;
+      isBuffering.value = true;
     }
     try {
-      await nextTick();
-      const api = await loadYouTubeApi();
-      if (
-        generation !== playbackGeneration ||
-        playingTrack.value?.id !== track.id ||
-        !isPlaying.value
-      ) return;
-      if (!youtubePlayer || youtubePlayerVideoId !== videoId) {
-        youtubePlayer?.destroy();
-        createYouTubePlayer(api, videoId);
-      } else {
-        youtubePlayer.playVideo();
+      if (isNewTrack || !audio.currentSrc) {
+        const source = await resolveTrackAudioSource(track);
+        if (
+          generation !== playbackGeneration ||
+          playingTrack.value?.id !== track.id ||
+          !isPlaying.value
+        )
+          return;
+        audio.src = source;
+        audio.load();
       }
+      await audio.play();
     } catch (error) {
-      if (generation === playbackGeneration) reportPlaybackFailure(track, error);
+      if (generation !== playbackGeneration || isAbortError(error)) return;
+      if (track.audioPath && !(error instanceof DOMException && error.name === 'NotAllowedError')) {
+        const refreshed = await retryStorageAudio(track, audio.currentTime, generation);
+        if (refreshed) return;
+      }
+      reportPlaybackFailure(track, error);
     }
-    return;
-  }
-
-  if (youtubePlayer) {
-    youtubePlayer.destroy();
-    youtubePlayer = undefined;
-    youtubePlayerVideoId = '';
-    stopYouTubeProgressUpdates();
-  }
-
-  if (!shouldPlay) {
-    playbackGeneration += 1;
-    audio.pause();
-    return;
-  }
-
-  const isNewTrack = track.id !== previousTrack?.id;
-  const generation = ++playbackGeneration;
-  if (isNewTrack) {
-    audio.pause();
-    storageRefreshAttemptedTrackId = '';
-    playbackFailureNotifiedTrackId = '';
-    audioCurrentTime.value = 0;
-    audioDurationSeconds.value = 0;
-    progress.value = 0;
-    elapsedSeconds.value = 0;
-    isBuffering.value = true;
-  }
-  try {
-    if (isNewTrack || !audio.currentSrc) {
-      const source = await resolveTrackAudioSource(track);
-      if (generation !== playbackGeneration || playingTrack.value?.id !== track.id || !isPlaying.value) return;
-      audio.src = source;
-      audio.load();
-    }
-    await audio.play();
-  } catch (error) {
-    if (generation !== playbackGeneration || isAbortError(error)) return;
-    if (track.audioPath && !(error instanceof DOMException && error.name === 'NotAllowedError')) {
-      const refreshed = await retryStorageAudio(track, audio.currentTime, generation);
-      if (refreshed) return;
-    }
-    reportPlaybackFailure(track, error);
-  }
-}, { flush: 'post' });
+  },
+  { flush: 'post' },
+);
 
 watch([volume, muted], ([vol, isMuted]) => {
   if (audioElement.value) {
@@ -1332,6 +2419,10 @@ onUnmounted(() => {
   playbackGeneration += 1;
   window.removeEventListener('keydown', onShortcut);
   window.removeEventListener('keydown', onEscKey);
+  if (publicCatalogChannel) {
+    void getSupabaseClient().removeChannel(publicCatalogChannel);
+    publicCatalogChannel = undefined;
+  }
   audioElement.value?.pause();
   youtubePlayer?.destroy();
   stopYouTubeProgressUpdates();
@@ -1341,24 +2432,64 @@ onUnmounted(() => {
   }
 });
 
-watch([tracks, playlists], () => {
-  if (!libraryReady.value) return;
+watch(
+  [tracks, playlists],
+  () => {
+    if (!libraryReady.value) return;
+    try {
+      saveTracks(props.userId, tracks.value);
+      savePlaylists(props.userId, playlists.value);
+      if (librarySaveTimer) clearTimeout(librarySaveTimer);
+      librarySaveTimer = setTimeout(() => {
+        librarySaveTimer = undefined;
+        void persistLibrary();
+      }, 350);
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: error instanceof Error ? error.message : 'Unable to save your local library.',
+        position: 'bottom',
+      });
+    }
+  },
+  { deep: true },
+);
+
+function isPublicCatalogTrack(track: MusicTrack | null | undefined): boolean {
+  return Boolean(track?.id.startsWith(publicTrackIdPrefix));
+}
+
+function toPublicPlayerTrack(track: PublicMusicTrack): MusicTrack {
+  return {
+    id: `${publicTrackIdPrefix}${track.id}`,
+    title: track.title,
+    artist: track.artist,
+    album: track.album,
+    genre: track.genre,
+    mood: 'Chill',
+    duration: track.duration || '0:00',
+    coverUrl: track.cover_url || defaultCover,
+    audioUrl: getPublicMusicAudioUrl(track),
+    audioPath: '',
+    playlistIds: [],
+    is_favorite: false,
+    createdAt: track.created_at,
+  };
+}
+
+async function loadPublicCatalog() {
+  publicCatalogLoading.value = true;
+  publicCatalogError.value = '';
   try {
-    saveTracks(props.userId, tracks.value);
-    savePlaylists(props.userId, playlists.value);
-    if (librarySaveTimer) clearTimeout(librarySaveTimer);
-    librarySaveTimer = setTimeout(() => {
-      librarySaveTimer = undefined;
-      void persistLibrary();
-    }, 350);
+    const publishedTracks = await loadPublicMusic();
+    publicCatalogTracks.value = publishedTracks.map(toPublicPlayerTrack);
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: error instanceof Error ? error.message : 'Unable to save your local library.',
-      position: 'bottom',
-    });
+    publicCatalogError.value =
+      error instanceof Error ? error.message : 'Unable to load new Sonora releases.';
+  } finally {
+    publicCatalogLoading.value = false;
   }
-}, { deep: true });
+}
 
 async function loadLibrary() {
   libraryLoading.value = true;
@@ -1368,9 +2499,7 @@ async function loadLibrary() {
       tracks: getTracks(props.userId),
       playlists: getPlaylists(props.userId),
     };
-    const library = props.localOnly
-      ? localLibrary
-      : await loadLibraryFromSupabase(props.userId);
+    const library = props.localOnly ? localLibrary : await loadLibraryFromSupabase(props.userId);
     tracks.value = library.tracks;
     playlists.value = library.playlists;
     listeningHistory.value = getListeningHistory(props.userId);
@@ -1381,19 +2510,32 @@ async function loadLibrary() {
       try {
         storageAudioStatuses.value = await verifyTrackAudioPaths(tracks.value);
         const missing = storageAudioStatuses.value.filter((status) => status.status === 'missing');
-        const wrongBucket = storageAudioStatuses.value.filter((status) => status.status === 'wrong-bucket');
-        const legacyBucket = storageAudioStatuses.value.filter((status) => status.status === 'legacy-bucket');
+        const wrongBucket = storageAudioStatuses.value.filter(
+          (status) => status.status === 'wrong-bucket',
+        );
+        const legacyBucket = storageAudioStatuses.value.filter(
+          (status) => status.status === 'legacy-bucket',
+        );
         const noAudio = tracks.value.filter((track) => !track.audioPath && !track.audioUrl);
-        const unverified = storageAudioStatuses.value.filter((status) => status.status === 'unverified');
+        const unverified = storageAudioStatuses.value.filter(
+          (status) => status.status === 'unverified',
+        );
         const describeTracks = (items: { title: string }[]) => {
-          const names = items.slice(0, 3).map((item) => item.title).join(', ');
+          const names = items
+            .slice(0, 3)
+            .map((item) => item.title)
+            .join(', ');
           return items.length > 3 ? `${names}, and ${items.length - 3} more` : names;
         };
         const problems = [
           missing.length ? `missing Storage file(s): ${describeTracks(missing)}` : '',
           wrongBucket.length ? `unsupported bucket path(s): ${describeTracks(wrongBucket)}` : '',
-          legacyBucket.length ? `legacy tracks bucket file(s): ${describeTracks(legacyBucket)}` : '',
-          noAudio.length ? `no audio file or URL: ${describeTracks(noAudio)}` : '',
+          legacyBucket.length
+            ? `legacy tracks bucket file(s): ${describeTracks(legacyBucket)}`
+            : '',
+          noAudio.length
+            ? `${noAudio.length} track(s) have no audio file or URL. Use Library > Attach audio to add files you own or are licensed to use`
+            : '',
           unverified.length ? `unverified Storage path(s): ${describeTracks(unverified)}` : '',
         ].filter(Boolean);
         if (problems.length) {
@@ -1407,9 +2549,10 @@ async function loadLibrary() {
       } catch (error) {
         $q.notify({
           type: 'warning',
-          message: error instanceof Error
-            ? `Could not verify music Storage paths: ${error.message}`
-            : 'Could not verify music Storage paths.',
+          message:
+            error instanceof Error
+              ? `Could not verify music Storage paths: ${error.message}`
+              : 'Could not verify music Storage paths.',
           position: 'bottom',
           timeout: 7000,
         });
@@ -1427,14 +2570,18 @@ async function persistLibrary(): Promise<boolean> {
   if (!libraryReady.value || props.localOnly) return false;
   try {
     await saveLibraryToSupabase(props.userId, {
-      tracks: tracks.value.map((track: MusicTrack) => ({ ...track, playlistIds: [...track.playlistIds] })),
+      tracks: tracks.value.map((track: MusicTrack) => ({
+        ...track,
+        playlistIds: [...track.playlistIds],
+      })),
       playlists: playlists.value.map((playlist: Playlist) => ({ ...playlist })),
     });
     return true;
   } catch (error) {
     $q.notify({
       type: 'negative',
-      message: error instanceof Error ? error.message : 'Unable to sync your library with Supabase.',
+      message:
+        error instanceof Error ? error.message : 'Unable to sync your library with Supabase.',
       position: 'bottom',
       timeout: 5000,
     });
@@ -1461,31 +2608,46 @@ function suggestTrackForAudioFile(file: File, unavailableTrackIds: Set<string>):
       const title = normalizeAudioMatch(track.title);
       const artist = normalizeAudioMatch(track.artist);
       const combined = [`${artist}${title}`, `${title}${artist}`];
-      const score = filename === title || combined.includes(filename)
-        ? 3
-        : filename.startsWith(title) || combined.some((name) => name && filename.startsWith(name))
-          ? 2
-          : title.length >= 5 && filename.includes(title)
-            ? 1
-            : 0;
+      const score =
+        filename === title || combined.includes(filename)
+          ? 3
+          : filename.startsWith(title) || combined.some((name) => name && filename.startsWith(name))
+            ? 2
+            : title.length >= 5 && filename.includes(title)
+              ? 1
+              : 0;
       return { id: track.id, score };
     })
     .filter((candidate) => candidate.score > 0)
     .sort((left, right) => right.score - left.score);
 
-  if (!candidates.length || (candidates[1] && candidates[0]!.score === candidates[1].score)) return '';
+  if (!candidates.length || (candidates[1] && candidates[0]!.score === candidates[1].score))
+    return '';
   return candidates[0]!.id;
 }
 
-function openBulkAudioDialog() {
+function isMusicTrack(value: MusicTrack | Event | undefined): value is MusicTrack {
+  return Boolean(
+    value && typeof value === 'object' && 'id' in value && 'title' in value && 'artist' in value,
+  );
+}
+
+function openBulkAudioDialog(targetTrack?: MusicTrack | Event) {
+  const selectedTrack = isMusicTrack(targetTrack) ? targetTrack : undefined;
+
   if (props.localOnly) {
-    $q.notify({ type: 'warning', message: 'Sign in and configure Supabase Storage to attach audio.', position: 'bottom' });
+    $q.notify({
+      type: 'warning',
+      message: 'Sign in and configure Supabase Storage to attach audio.',
+      position: 'bottom',
+    });
     return;
   }
   if (!bulkAudioNeedsSync.value) {
     bulkAudioAssignments.value = [];
     bulkAudioProgress.value = 0;
   }
+  bulkAudioTargetTrackId.value = selectedTrack?.id ?? null;
   bulkAudioDialogOpen.value = true;
 }
 
@@ -1503,12 +2665,26 @@ function selectBulkAudioFiles(event: Event) {
       timeout: 5000,
     });
   }
-  const unavailableTrackIds = new Set(bulkAudioAssignments.value.map((assignment) => assignment.trackId).filter(Boolean));
-  bulkAudioAssignments.value.push(...accepted.map((file) => {
-    const trackId = suggestTrackForAudioFile(file, unavailableTrackIds);
-    if (trackId) unavailableTrackIds.add(trackId);
-    return { file, trackId };
-  }));
+  const unavailableTrackIds = new Set(
+    bulkAudioAssignments.value.map((assignment) => assignment.trackId).filter(Boolean),
+  );
+  const targetTrackId = bulkAudioTargetTrackId.value;
+  const canUseTargetTrack =
+    targetTrackId &&
+    tracksNeedingAudio.value.some((track) => track.id === targetTrackId) &&
+    !unavailableTrackIds.has(targetTrackId);
+  bulkAudioAssignments.value.push(
+    ...accepted.map((file) => {
+      const trackId =
+        canUseTargetTrack &&
+        !bulkAudioAssignments.value.some((assignment) => assignment.trackId === targetTrackId)
+          ? targetTrackId
+          : suggestTrackForAudioFile(file, unavailableTrackIds);
+      if (trackId) unavailableTrackIds.add(trackId);
+      return { file, trackId };
+    }),
+  );
+  bulkAudioTargetTrackId.value = null;
 }
 
 function bulkAudioOptionsFor(assignmentIndex: number) {
@@ -1548,20 +2724,35 @@ async function uploadBulkAudio() {
       } catch (error) {
         $q.notify({
           type: 'warning',
-          message: error instanceof Error ? `Audio links were saved, but Storage verification failed: ${error.message}` : 'Audio links were saved, but Storage verification failed.',
+          message:
+            error instanceof Error
+              ? `Audio links were saved, but Storage verification failed: ${error.message}`
+              : 'Audio links were saved, but Storage verification failed.',
           position: 'bottom',
         });
       }
       if (bulkAudioAssignments.value.length) {
-        $q.notify({ type: 'warning', message: 'Saved the uploaded audio links. Failed files remain selected so you can retry them.', position: 'bottom' });
+        $q.notify({
+          type: 'warning',
+          message:
+            'Saved the uploaded audio links. Failed files remain selected so you can retry them.',
+          position: 'bottom',
+        });
       } else {
-        $q.notify({ type: 'positive', message: 'Audio links saved to your library.', position: 'bottom' });
+        $q.notify({
+          type: 'positive',
+          message: 'Audio links saved to your library.',
+          position: 'bottom',
+        });
         bulkAudioDialogOpen.value = false;
       }
     } catch (error) {
       $q.notify({
         type: 'warning',
-        message: error instanceof Error ? `Audio links were saved, but Storage verification failed: ${error.message}` : 'Audio links were saved, but Storage verification failed.',
+        message:
+          error instanceof Error
+            ? `Audio links were saved, but Storage verification failed: ${error.message}`
+            : 'Audio links were saved, but Storage verification failed.',
         position: 'bottom',
       });
     } finally {
@@ -1590,7 +2781,9 @@ async function uploadBulkAudio() {
         track.isSeeded = false;
         uploadedCount += 1;
       } catch (error) {
-        failures.push(`${assignment.file.name}: ${error instanceof Error ? error.message : 'upload failed'}`);
+        failures.push(
+          `${assignment.file.name}: ${error instanceof Error ? error.message : 'upload failed'}`,
+        );
         failedAssignments.push(assignment);
       }
       bulkAudioProgress.value += 1;
@@ -1627,7 +2820,10 @@ async function uploadBulkAudio() {
     } catch (error) {
       $q.notify({
         type: 'warning',
-        message: error instanceof Error ? `Audio was attached, but Storage verification failed: ${error.message}` : 'Audio was attached, but Storage verification failed.',
+        message:
+          error instanceof Error
+            ? `Audio was attached, but Storage verification failed: ${error.message}`
+            : 'Audio was attached, but Storage verification failed.',
         position: 'bottom',
         timeout: 6000,
       });
@@ -1700,7 +2896,11 @@ function selectAudioFile(event: Event) {
   if (file.size > maxAudioFileSize) {
     selectedAudioFile.value = null;
     input.value = '';
-    $q.notify({ type: 'warning', message: 'Audio files must be 50 MB or smaller.', position: 'bottom' });
+    $q.notify({
+      type: 'warning',
+      message: 'Audio files must be 50 MB or smaller.',
+      position: 'bottom',
+    });
     return;
   }
   selectedAudioFile.value = file;
@@ -1741,13 +2941,20 @@ function playTrack(track: MusicTrack) {
     elapsedSeconds.value = 0;
     progress.value = 0;
   }
-  if (playingTrack.value?.id === track.id && isPlaying.value) {
+  if (playingTrack.value?.id === track.id && isPlaying.value && !isPublicCatalogTrack(track)) {
     listeningHistory.value = [
       { trackId: track.id, playedAt: new Date().toISOString() },
       ...listeningHistory.value.filter((item) => item.trackId !== track.id),
     ].slice(0, 50);
     saveListeningHistory(props.userId, listeningHistory.value);
   }
+}
+
+function playPublicCatalogTrack(track: MusicTrack) {
+  const index = publicCatalogTracks.value.findIndex((item) => item.id === track.id);
+  if (index < 0) return;
+  queue.value = publicCatalogTracks.value.slice(index + 1);
+  playTrack(track);
 }
 
 function onAudioTimeUpdate() {
@@ -1798,16 +3005,29 @@ function seekTrack() {
 }
 
 function isAbortError(error: unknown): boolean {
-  return typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError';
+  return (
+    typeof DOMException !== 'undefined' &&
+    error instanceof DOMException &&
+    error.name === 'AbortError'
+  );
 }
 
-async function retryStorageAudio(track: MusicTrack, position: number, generation: number): Promise<boolean> {
+async function retryStorageAudio(
+  track: MusicTrack,
+  position: number,
+  generation: number,
+): Promise<boolean> {
   const audio = audioElement.value;
   if (!audio || !track.audioPath || storageRefreshAttemptedTrackId === track.id) return false;
   storageRefreshAttemptedTrackId = track.id;
   try {
     const source = await resolveTrackAudioSource(track);
-    if (generation !== playbackGeneration || playingTrack.value?.id !== track.id || !isPlaying.value) return true;
+    if (
+      generation !== playbackGeneration ||
+      playingTrack.value?.id !== track.id ||
+      !isPlaying.value
+    )
+      return true;
     await new Promise<void>((resolve, reject) => {
       const cleanUp = () => {
         audio.removeEventListener('loadedmetadata', onMetadata);
@@ -1826,14 +3046,20 @@ async function retryStorageAudio(track: MusicTrack, position: number, generation
       audio.src = source;
       audio.load();
     });
-    if (generation !== playbackGeneration || playingTrack.value?.id !== track.id || !isPlaying.value) return true;
+    if (
+      generation !== playbackGeneration ||
+      playingTrack.value?.id !== track.id ||
+      !isPlaying.value
+    )
+      return true;
     if (Number.isFinite(audio.duration) && audio.duration > 0) {
       audio.currentTime = Math.min(position, audio.duration);
     }
     await audio.play();
     return true;
   } catch (error) {
-    if (generation === playbackGeneration && !isAbortError(error)) reportPlaybackFailure(track, error);
+    if (generation === playbackGeneration && !isAbortError(error))
+      reportPlaybackFailure(track, error);
     return true;
   }
 }
@@ -1853,8 +3079,13 @@ function reportPlaybackFailure(track: MusicTrack, error?: unknown) {
     !track.audioPath &&
     !getYouTubeVideoId(track.audioUrl) &&
     !resolveTrackAudioUrl(track.audioUrl);
+  const missingAudio =
+    !track.audioPath && !getYouTubeVideoId(track.audioUrl) && !resolveTrackAudioUrl(track.audioUrl);
+  const isYouTubeAudio = Boolean(getYouTubeVideoId(track.audioUrl));
   if (missingCatalogAudio) {
-    message = `No original recording is linked for “${track.title}”. Search YouTube or add an authorized audio file.`;
+    message = `No recording is linked for “${track.title}”. Choose a YouTube video or attach authorized audio.`;
+  } else if (missingAudio) {
+    message = `No audio is linked for “${track.title}”. Attach an audio file you own or are licensed to use.`;
   } else if (status?.status === 'missing') {
     message = `Audio file for “${track.title}” is missing from the music bucket.`;
   } else if (status?.status === 'wrong-bucket') {
@@ -1874,34 +3105,41 @@ function reportPlaybackFailure(track: MusicTrack, error?: unknown) {
   } else {
     message = `Could not start “${track.title}”. Check its audio file and Storage permissions.`;
   }
-  if (typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'NotAllowedError') {
+  if (
+    typeof DOMException !== 'undefined' &&
+    error instanceof DOMException &&
+    error.name === 'NotAllowedError'
+  ) {
     message = 'Your browser blocked playback. Press Play again to allow audio.';
+  }
+  const actions: { label: string; color: string; handler: () => void }[] = [];
+  if (missingAudio) {
+    actions.push({
+      label: 'Attach audio',
+      color: 'white',
+      handler: () => openBulkAudioDialog(track),
+    });
+  }
+  if (missingCatalogAudio || isYouTubeAudio) {
+    actions.push({
+      label: isYouTubeAudio ? 'Choose another video' : 'Find YouTube video',
+      color: 'white',
+      handler: () => openYouTubeSearch(track),
+    });
+  }
+  if (missingCatalogAudio) {
+    actions.push({
+      label: 'Search YouTube',
+      color: 'white',
+      handler: () => searchYouTubeInBrowser(track),
+    });
   }
   $q.notify({
     type: 'negative',
     message,
     position: 'bottom',
     timeout: 6000,
-    ...(missingCatalogAudio
-      ? {
-          actions: [
-            {
-              label: 'Search YouTube',
-              color: 'white',
-              handler: () => {
-                const query = encodeURIComponent(
-                  `${getArtistDisplayName(track)} ${track.title} official audio`,
-                );
-                window.open(
-                  `https://www.youtube.com/results?search_query=${query}`,
-                  '_blank',
-                  'noopener,noreferrer',
-                );
-              },
-            },
-          ],
-        }
-      : {}),
+    ...(actions.length ? { actions } : {}),
   });
 }
 
@@ -1970,15 +3208,21 @@ function stepTrack(direction: number, trackEnded = false) {
       isPlaying.value = true;
       elapsedSeconds.value = 0;
       progress.value = 0;
-      listeningHistory.value = [
-        { trackId: nextTrack.id, playedAt: new Date().toISOString() },
-        ...listeningHistory.value.filter((item) => item.trackId !== nextTrack.id),
-      ].slice(0, 50);
-      saveListeningHistory(props.userId, listeningHistory.value);
+      if (!isPublicCatalogTrack(nextTrack)) {
+        listeningHistory.value = [
+          { trackId: nextTrack.id, playedAt: new Date().toISOString() },
+          ...listeningHistory.value.filter((item) => item.trackId !== nextTrack.id),
+        ].slice(0, 50);
+        saveListeningHistory(props.userId, listeningHistory.value);
+      }
     }
     return;
   }
-  const list = filteredTracks.value.length ? filteredTracks.value : tracks.value;
+  const list = isPublicCatalogTrack(playingTrack.value)
+    ? publicCatalogTracks.value
+    : filteredTracks.value.length
+      ? filteredTracks.value
+      : tracks.value;
   if (!list.length) return;
   const currentIndex = list.findIndex((track) => track.id === playingTrack.value?.id);
   let nextIndex: number;
@@ -1993,14 +3237,20 @@ function stepTrack(direction: number, trackEnded = false) {
 }
 
 function playFeatured() {
-  const featured = tracks.value.find((track: MusicTrack) => track.mood === 'Chill') || tracks.value[0];
+  const featured =
+    tracks.value.find((track: MusicTrack) => track.mood === 'Chill') || tracks.value[0];
   if (featured) playTrack(featured);
 }
 
 function playMood(mood: string) {
   const match = tracks.value.find((track: MusicTrack) => track.mood === mood);
   if (match) playTrack(match);
-  else $q.notify({ message: `Your ${mood.toLowerCase()} mix is being tuned.`, position: 'bottom', timeout: 1800 });
+  else
+    $q.notify({
+      message: `Your ${mood.toLowerCase()} mix is being tuned.`,
+      position: 'bottom',
+      timeout: 1800,
+    });
 }
 
 function playHomeMood(mood: string | null) {
@@ -2037,34 +3287,85 @@ function removeArtistCredit(track: MusicTrack) {
   });
 }
 
-function linkYouTubeVideo(track: MusicTrack) {
-  $q.dialog({
-    title: 'Link YouTube video',
-    message: `Paste the YouTube video URL for “${track.title}”. Playback uses YouTube's embedded player.`,
-    prompt: {
-      model: track.audioUrl || '',
-      type: 'url',
-      isValid: (value: string) => Boolean(getYouTubeVideoId(value)),
-    },
-    cancel: true,
-    persistent: true,
-  }).onOk((value: string) => {
-    const videoUrl = value.trim();
-    if (!getYouTubeVideoId(videoUrl)) {
-      $q.notify({ type: 'warning', message: 'Enter a valid YouTube video URL.', position: 'bottom' });
-      return;
-    }
+function openYouTubeSearch(track: MusicTrack) {
+  youtubeSearchController?.abort();
+  youtubeSearchRequestId += 1;
+  youtubeSearchTrack.value = track;
+  youtubeSearchResults.value = [];
+  youtubeSearchError.value = '';
+  youtubeSearchLoading.value = true;
+  youtubeSearchDialogOpen.value = true;
 
-    const updatedTrack = { ...track, audioUrl: videoUrl, isSeeded: true };
-    tracks.value = tracks.value.map((item) =>
-      item.id === track.id ? updatedTrack : item,
-    );
-    if (playingTrack.value?.id === track.id) {
-      playingTrack.value = updatedTrack;
-      isPlaying.value = true;
-    }
-    $q.notify({ message: 'YouTube video linked to this song', position: 'bottom', timeout: 1800 });
-  });
+  const requestId = youtubeSearchRequestId;
+  const controller = new AbortController();
+  youtubeSearchController = controller;
+  const query = `${track.title} ${getArtistDisplayName(track)} official audio`;
+  void searchYouTubeVideos(query, controller.signal)
+    .then((results) => {
+      if (requestId !== youtubeSearchRequestId) return;
+      youtubeSearchResults.value = results;
+    })
+    .catch((error: unknown) => {
+      if (controller.signal.aborted || requestId !== youtubeSearchRequestId) return;
+      youtubeSearchError.value =
+        error instanceof Error ? error.message : 'YouTube search could not be completed.';
+    })
+    .finally(() => {
+      if (requestId === youtubeSearchRequestId) {
+        youtubeSearchLoading.value = false;
+        youtubeSearchController = undefined;
+      }
+    });
+}
+
+function onYouTubeSearchDialogHide() {
+  youtubeSearchController?.abort();
+  youtubeSearchController = undefined;
+  youtubeSearchRequestId += 1;
+  youtubeSearchLoading.value = false;
+  youtubeSearchTrack.value = null;
+  youtubeSearchResults.value = [];
+  youtubeSearchError.value = '';
+}
+
+function selectYouTubeResult(result: YouTubeVideoResult) {
+  const track = youtubeSearchTrack.value;
+  if (!track) return;
+  const currentTrack = tracks.value.find((item) => item.id === track.id);
+  if (!currentTrack) {
+    youtubeSearchDialogOpen.value = false;
+    $q.notify({
+      type: 'negative',
+      message: 'This song is no longer in your library.',
+      position: 'bottom',
+    });
+    return;
+  }
+
+  const updatedTrack = {
+    ...currentTrack,
+    audioUrl: `https://www.youtube.com/watch?v=${encodeURIComponent(result.videoId)}`,
+    isSeeded: true,
+  };
+  tracks.value = tracks.value.map((item) => (item.id === currentTrack.id ? updatedTrack : item));
+  youtubeSearchDialogOpen.value = false;
+  if (playingTrack.value?.id === currentTrack.id) {
+    playingTrack.value = updatedTrack;
+    isPlaying.value = true;
+  } else {
+    playTrack(updatedTrack);
+  }
+  $q.notify({ message: 'YouTube video linked to this song', position: 'bottom', timeout: 1800 });
+}
+
+function searchYouTubeInBrowser(track: MusicTrack | null) {
+  if (!track) return;
+  const query = encodeURIComponent(`${track.title} ${getArtistDisplayName(track)} official audio`);
+  window.open(
+    `https://www.youtube.com/results?search_query=${query}`,
+    '_blank',
+    'noopener,noreferrer',
+  );
 }
 
 function addToQueue(track: MusicTrack) {
@@ -2130,11 +3431,13 @@ function playQueuedTrack(index: number) {
   isPlaying.value = true;
   elapsedSeconds.value = 0;
   progress.value = 0;
-  listeningHistory.value = [
-    { trackId: track.id, playedAt: new Date().toISOString() },
-    ...listeningHistory.value.filter((item) => item.trackId !== track.id),
-  ].slice(0, 50);
-  saveListeningHistory(props.userId, listeningHistory.value);
+  if (!isPublicCatalogTrack(track)) {
+    listeningHistory.value = [
+      { trackId: track.id, playedAt: new Date().toISOString() },
+      ...listeningHistory.value.filter((item) => item.trackId !== track.id),
+    ].slice(0, 50);
+    saveListeningHistory(props.userId, listeningHistory.value);
+  }
 }
 
 function removeFromQueue(index: number) {
@@ -2155,7 +3458,11 @@ async function createTrack() {
   const submittedAudioUrl = trackForm.audioUrl?.trim() || '';
   const hasUrl = Boolean(submittedAudioUrl);
   if (!file && !hasUrl) {
-    $q.notify({ type: 'warning', message: 'Choose an audio file or enter a direct audio URL.', position: 'bottom' });
+    $q.notify({
+      type: 'warning',
+      message: 'Choose an audio file or enter a direct audio URL.',
+      position: 'bottom',
+    });
     return;
   }
   if (!trackForm.title?.trim() || !trackForm.artist?.trim()) return;
@@ -2164,14 +3471,22 @@ async function createTrack() {
     try {
       parsedUrl = new URL(submittedAudioUrl);
     } catch {
-      $q.notify({ type: 'warning', message: 'Enter a valid direct audio URL.', position: 'bottom' });
+      $q.notify({
+        type: 'warning',
+        message: 'Enter a valid direct audio URL.',
+        position: 'bottom',
+      });
       return;
     }
     if (
       !getYouTubeVideoId(submittedAudioUrl) &&
       !['http:', 'https:'].includes(parsedUrl.protocol)
     ) {
-      $q.notify({ type: 'warning', message: 'Enter a direct HTTP(S) audio URL or a supported YouTube video link.', position: 'bottom' });
+      $q.notify({
+        type: 'warning',
+        message: 'Enter a direct HTTP(S) audio URL or a supported YouTube video link.',
+        position: 'bottom',
+      });
       return;
     }
   }
@@ -2251,13 +3566,21 @@ function savePlaylist() {
       playlist.name.toLocaleLowerCase() === name.toLocaleLowerCase(),
   );
   if (duplicate) {
-    $q.notify({ type: 'warning', message: 'A playlist with that name already exists.', position: 'bottom' });
+    $q.notify({
+      type: 'warning',
+      message: 'A playlist with that name already exists.',
+      position: 'bottom',
+    });
     return;
   }
   if (editingPlaylistId.value) {
     const playlist = playlists.value.find((item) => item.id === editingPlaylistId.value);
     if (!playlist) {
-      $q.notify({ type: 'negative', message: 'This playlist could not be found.', position: 'bottom' });
+      $q.notify({
+        type: 'negative',
+        message: 'This playlist could not be found.',
+        position: 'bottom',
+      });
       return;
     }
     const previousName = playlist.name;
@@ -2288,7 +3611,11 @@ function deletePlaylist(playlistId = editingPlaylistId.value) {
   if (!playlistId) return;
   const playlist = playlists.value.find((item) => item.id === playlistId);
   if (!playlist) {
-    $q.notify({ type: 'negative', message: 'This playlist could not be found.', position: 'bottom' });
+    $q.notify({
+      type: 'negative',
+      message: 'This playlist could not be found.',
+      position: 'bottom',
+    });
     return;
   }
   $q.dialog({
@@ -2330,9 +3657,7 @@ function onShortcut(event: KeyboardEvent) {
 }
 
 function onEscKey(event: KeyboardEvent) {
-  if (event.key === 'Escape' && expandedPlayerOpen.value && !youtubeVideoId.value) {
-    expandedPlayerOpen.value = false;
-  }
+  if (event.key === 'Escape' && expandedPlayerOpen.value) expandedPlayerOpen.value = false;
 }
 
 function formatDuration(seconds: number): string {
@@ -2342,6 +3667,119 @@ function formatDuration(seconds: number): string {
 </script>
 
 <style scoped>
+.ep-topbar .ep-back-button {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: auto;
+  min-width: 76px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff !important;
+  font:
+    600 12px 'Manrope',
+    sans-serif;
+}
+
+.ep-topbar .ep-back-button:focus-visible {
+  outline: 2px solid #c8ff4d;
+  outline-offset: 3px;
+}
+
+.ep-topbar .ep-back-button .q-icon {
+  font-size: 18px;
+}
+
+.youtube-search-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-width: 560px;
+}
+
+.youtube-search-content {
+  max-height: min(60vh, 480px);
+  overflow-y: auto;
+}
+
+.youtube-search-track {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.youtube-search-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+}
+
+.youtube-search-error,
+.youtube-search-empty {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.youtube-search-error {
+  color: #ffb4ab;
+}
+
+.youtube-search-empty {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.youtube-search-results {
+  display: grid;
+  gap: 8px;
+}
+
+.youtube-search-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 12px;
+  color: inherit;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
+.youtube-search-result:hover,
+.youtube-search-result:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.youtube-search-result img {
+  flex: 0 0 96px;
+  width: 96px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.youtube-search-result-copy {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.youtube-search-result-copy strong,
+.youtube-search-result-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.youtube-search-result-copy small {
+  color: rgba(255, 255, 255, 0.62);
+}
+
 .ep-youtube-player {
   display: block;
   position: relative;

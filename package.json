@@ -15,6 +15,9 @@
     "postinstall": "quasar prepare --silent"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.6.2",
     "@quasar/extras": "^2.1.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
@@ -50,6 +53,6 @@
     "vuejs"
   ],
   "engines": {
-    "node": ">= 26 || ^24 || ^22.12"
+    "node": "^30 || ^28 || ^26 || ^24 || ^22.22.0"
   }
 }

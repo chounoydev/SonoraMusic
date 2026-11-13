@@ -1,6 +1,6 @@
 -- ═════════════════════════════════════════════════════════════════════════════
 -- SONORA MUSIC APP — SUPABASE POSTGRESQL SCHEMA
--- Run this entire script once in your Supabase SQL Editor.
+-- Run this script in your Supabase SQL Editor. It is safe to rerun.
 -- Dashboard → SQL Editor → New query → paste → Run
 -- ═════════════════════════════════════════════════════════════════════════════
 
@@ -58,22 +58,31 @@ create table if not exists public.playlist_tracks (
 -- tracks
 alter table public.tracks enable row level security;
 
+drop policy if exists "tracks: select own" on public.tracks;
 create policy "tracks: select own"   on public.tracks for select using (auth.uid() = user_id);
+drop policy if exists "tracks: insert own" on public.tracks;
 create policy "tracks: insert own"   on public.tracks for insert with check (auth.uid() = user_id);
+drop policy if exists "tracks: update own" on public.tracks;
 create policy "tracks: update own"   on public.tracks for update using (auth.uid() = user_id);
+drop policy if exists "tracks: delete own" on public.tracks;
 create policy "tracks: delete own"   on public.tracks for delete using (auth.uid() = user_id);
 
 -- playlists
 alter table public.playlists enable row level security;
 
+drop policy if exists "playlists: select own" on public.playlists;
 create policy "playlists: select own" on public.playlists for select using (auth.uid() = user_id);
+drop policy if exists "playlists: insert own" on public.playlists;
 create policy "playlists: insert own" on public.playlists for insert with check (auth.uid() = user_id);
+drop policy if exists "playlists: update own" on public.playlists;
 create policy "playlists: update own" on public.playlists for update using (auth.uid() = user_id);
+drop policy if exists "playlists: delete own" on public.playlists;
 create policy "playlists: delete own" on public.playlists for delete using (auth.uid() = user_id);
 
 -- playlist_tracks (RLS via join — only rows whose playlist belongs to the user)
 alter table public.playlist_tracks enable row level security;
 
+drop policy if exists "playlist_tracks: select own" on public.playlist_tracks;
 create policy "playlist_tracks: select own"
   on public.playlist_tracks for select
   using (exists (
@@ -81,6 +90,7 @@ create policy "playlist_tracks: select own"
     where p.id = playlist_id and p.user_id = auth.uid()
   ));
 
+drop policy if exists "playlist_tracks: insert own" on public.playlist_tracks;
 create policy "playlist_tracks: insert own"
   on public.playlist_tracks for insert
   with check (exists (
@@ -88,6 +98,7 @@ create policy "playlist_tracks: insert own"
     where p.id = playlist_id and p.user_id = auth.uid()
   ));
 
+drop policy if exists "playlist_tracks: delete own" on public.playlist_tracks;
 create policy "playlist_tracks: delete own"
   on public.playlist_tracks for delete
   using (exists (

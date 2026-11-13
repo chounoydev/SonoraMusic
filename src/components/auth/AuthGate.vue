@@ -3,6 +3,7 @@
     v-if="ready && session && !passwordRecovery"
     :user-id="session.user.id"
     :user-email="session.user.email || ''"
+    :is-admin="hasAdminAccess(session.user)"
     @sign-out="signOut"
   />
   <q-page v-else class="auth-page">
@@ -27,6 +28,7 @@ import type { Session, Subscription } from '@supabase/supabase-js';
 import AuthPanel from '@/components/auth/AuthPanel.vue';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm.vue';
 import SonoraLibrary from '@/components/library/SonoraLibrary.vue';
+import { hasAdminAccess } from '@/services/admin-access';
 import { getSupabaseClient } from '../../../lib/supabase/client';
 
 const props = withDefaults(
@@ -109,8 +111,7 @@ async function onReturnToSignIn() {
     passwordRecovery.value = false;
     await router.replace('/login');
   } catch (error) {
-    setupError.value =
-      error instanceof Error ? error.message : 'Unable to return to sign in.';
+    setupError.value = error instanceof Error ? error.message : 'Unable to return to sign in.';
   }
 }
 
@@ -124,8 +125,7 @@ async function leaveRecoveryPage() {
     passwordRecovery.value = false;
     await router.replace(data.session ? '/library' : '/login');
   } catch (error) {
-    setupError.value =
-      error instanceof Error ? error.message : 'Unable to return to your library.';
+    setupError.value = error instanceof Error ? error.message : 'Unable to return to your library.';
   }
 }
 

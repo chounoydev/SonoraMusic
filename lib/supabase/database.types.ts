@@ -146,6 +146,53 @@ export interface Database {
           },
         ];
       };
+
+      public_music: {
+        Row: {
+          id: string;
+          admin_id: string;
+          title: string;
+          artist: string;
+          album: string;
+          genre: string;
+          duration: string;
+          cover_url: string;
+          audio_path: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_id: string;
+          title: string;
+          artist?: string;
+          album?: string;
+          genre?: string;
+          duration?: string;
+          cover_url?: string;
+          audio_path: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          admin_id?: string;
+          title?: string;
+          artist?: string;
+          album?: string;
+          genre?: string;
+          duration?: string;
+          cover_url?: string;
+          audio_path?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'public_music_admin_id_fkey';
+            columns: ['admin_id'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
 
     Views: Record<string, never>;
