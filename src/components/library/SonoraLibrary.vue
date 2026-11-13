@@ -79,11 +79,13 @@
         <button
           class="profile-avatar-btn yt-profile-btn"
           :aria-label="`Profile: ${props.userEmail}`"
+          :aria-expanded="profileMenu"
+          aria-controls="profile-menu"
           @click="profileMenu = !profileMenu"
         >
           <span>{{ props.userEmail.charAt(0).toLocaleUpperCase() || 'A' }}</span>
         </button>
-        <div v-if="profileMenu" class="profile-popover yt-topbar-popover">
+        <div v-if="profileMenu" id="profile-menu" class="profile-popover yt-topbar-popover">
           <div class="popover-user-row">
             <span class="profile-avatar">{{
               props.userEmail.charAt(0).toLocaleUpperCase() || 'A'
@@ -111,7 +113,9 @@
             <q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" />
             {{ darkMode ? 'Light appearance' : 'Dark appearance' }}
           </button>
-          <button @click="$emit('sign-out')"><q-icon name="logout" /> Sign out</button>
+          <button class="profile-sign-out" @click="$emit('sign-out')">
+            <q-icon name="logout" /> Sign out
+          </button>
         </div>
       </div>
     </header>
