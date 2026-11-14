@@ -128,7 +128,7 @@ The local `.env`, Gradle build outputs, local SDK path, and generated Android we
 3. Add the Supabase callback URL displayed in the Google provider settings to the OAuth client's authorized redirect URIs.
 4. Make sure the app's local and production URLs are allowed in Supabase **Authentication → URL Configuration**.
 
-If Google sign-in returns `Unsupported provider: provider is not enabled`, Google is not enabled in the Supabase project set by `VITE_SUPABASE_URL`. Enable the Google provider there and configure its OAuth client ID and secret.
+If Google sign-in returns `Unsupported provider: provider is not enabled`, Google is not enabled in the Supabase project set by `VITE_SUPABASE_URL`. In that project's **Authentication → Sign In / Providers → Google** settings, enable Google and enter the Google OAuth client ID and secret. Add the Supabase callback URL shown on that page to the Google OAuth client's authorized redirect URIs. Under **Authentication → URL Configuration → Redirect URLs**, allow the web app's origin and, for Android, `com.sonora.music://auth/callback`. Do not put the Google client secret in `.env` or browser code.
 
 ### Start the app
 

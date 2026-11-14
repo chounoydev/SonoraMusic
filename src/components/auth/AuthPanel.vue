@@ -496,19 +496,50 @@ async function signInWithGoogle() {
       provider: 'google',
       options: {
         redirectTo: getAuthRedirectUrl(flow, redirectPath),
-        skipBrowserRedirect: isNative,
+        skipBrowserRedirect: true,
       },
     });
     if (error) throw error;
+    if (!data.url) throw new Error('Supabase did not return a Google sign-in URL.');
+
+    if (!isNative) {
+      const authorizationResponse = await fetch(data.url, { redirect: 'manual' });
+      if (authorizationResponse.status >= 400) {
+        const responseBody = await authorizationResponse.text();
+        let detail = responseBody;
+        try {
+          const parsed: unknown = JSON.parse(responseBody);
+          if (
+            parsed &&
+            typeof parsed === 'object' &&
+            'msg' in parsed &&
+            typeof parsed.msg === 'string'
+          ) {
+            detail = parsed.msg;
+          }
+        } catch {
+          // Keep plain-text authorization errors readable.
+        }
+        throw new Error(
+          detail || `Google authorization failed (${authorizationResponse.status}).`,
+        );
+      }
+    }
+
     if (isNative) {
-      if (!data.url) throw new Error('Supabase did not return a Google sign-in URL.');
       await Browser.open({ url: data.url });
+    } else {
+      window.location.assign(data.url);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : '';
-    errorMessage.value = message.includes('provider is not enabled')
-      ? 'Google sign-in is disabled for this Supabase project. Enable Google under Authentication → Providers, then add your Google OAuth client ID and secret.'
-      : message || 'Unable to connect your Google account.';
+    const normalizedMessage = message.toLowerCase();
+    errorMessage.value =
+      normalizedMessage.includes('provider is not enabled') ||
+      normalizedMessage.includes('unsupported provider')
+        ? 'Google sign-in is disabled in the Supabase project used by this app. In that project, open Authentication → Sign In / Providers → Google, enable Google, and enter your Google OAuth client ID and secret. In Google Cloud, add the Supabase callback URL shown on that page to the OAuth client’s authorized redirect URIs. Also allow this app’s URL under Supabase Authentication → URL Configuration → Redirect URLs (including com.sonora.music://auth/callback for Android). Then retry. Never put the Google client secret in this app or its .env file.'
+        : message || 'Unable to connect your Google account.';
+  } finally {
     submitting.value = false;
   }
 }

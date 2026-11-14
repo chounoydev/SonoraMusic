@@ -4349,3 +4349,16 @@ body:not(.body--dark) .sonora-dialog .lime-button {
   background: #42651b;
   color: #fff;
 }
+
+.mobile-sign-out {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .yt-navigation .mobile-sign-out {
+    display: flex;
+    margin-top: 8px;
+    border-top: 1px solid var(--sonora-line);
+    color: var(--sonora-text) !important;
+  }
+}

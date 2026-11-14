@@ -189,6 +189,10 @@
               <q-icon name="download" class="yt-nav-icon" />
               <span>Download Android app</span>
             </a>
+            <button class="side-link yt-nav-link mobile-sign-out" @click="$emit('sign-out')">
+              <q-icon name="logout" class="yt-nav-icon" />
+              <span>Sign out</span>
+            </button>
           </div>
 
           <div class="yt-nav-divider" />
