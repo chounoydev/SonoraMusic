@@ -4350,15 +4350,112 @@ body:not(.body--dark) .sonora-dialog .lime-button {
   color: #fff;
 }
 
-.mobile-sign-out {
+.mobile-account-panel {
   display: none;
 }
 
 @media (max-width: 700px) {
-  .yt-navigation .mobile-sign-out {
-    display: flex;
-    margin-top: 8px;
+  .sonora-page {
+    min-height: 0;
+  }
+
+  .sonora-page .yt-topbar {
+    height: calc(56px + env(safe-area-inset-top, 0px));
+    flex-basis: calc(56px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .sonora-page .sonora-sidebar {
+    top: calc(56px + env(safe-area-inset-top, 0px));
+    bottom: calc(62px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .sonora-page .sidebar-backdrop {
+    inset:
+      calc(56px + env(safe-area-inset-top, 0px)) 0
+      calc(62px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .sonora-page .mobile-account-panel {
+    display: grid;
+    flex: 0 0 auto;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 14px 0 4px;
     border-top: 1px solid var(--sonora-line);
-    color: var(--sonora-text) !important;
+    background: var(--sonora-sidebar);
+  }
+
+  .mobile-account-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 0 4px;
+  }
+
+  .mobile-account-copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .mobile-account-copy strong,
+  .mobile-account-copy small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-account-copy strong {
+    color: var(--sonora-text);
+    font-size: 12px;
+  }
+
+  .mobile-account-copy small {
+    color: var(--sonora-muted);
+    font-size: 10px;
+  }
+
+  .mobile-account-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mobile-account-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 8px;
+    border: 1px solid var(--sonora-line);
+    border-radius: 12px;
+    background: var(--sonora-panel);
+    color: var(--sonora-text);
+    font: 600 11px 'Manrope', sans-serif;
+    cursor: pointer;
+  }
+
+  .mobile-account-action .q-icon {
+    flex: 0 0 auto;
+    color: var(--sonora-lime);
+    font-size: 18px;
+  }
+
+  .mobile-account-action span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-account-sign-out .q-icon {
+    color: #e87969;
+  }
+
+  .mobile-account-action:active {
+    background: var(--sonora-panel-hover);
   }
 }

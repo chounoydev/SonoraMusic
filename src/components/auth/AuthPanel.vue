@@ -502,30 +502,6 @@ async function signInWithGoogle() {
     if (error) throw error;
     if (!data.url) throw new Error('Supabase did not return a Google sign-in URL.');
 
-    if (!isNative) {
-      const authorizationResponse = await fetch(data.url, { redirect: 'manual' });
-      if (authorizationResponse.status >= 400) {
-        const responseBody = await authorizationResponse.text();
-        let detail = responseBody;
-        try {
-          const parsed: unknown = JSON.parse(responseBody);
-          if (
-            parsed &&
-            typeof parsed === 'object' &&
-            'msg' in parsed &&
-            typeof parsed.msg === 'string'
-          ) {
-            detail = parsed.msg;
-          }
-        } catch {
-          // Keep plain-text authorization errors readable.
-        }
-        throw new Error(
-          detail || `Google authorization failed (${authorizationResponse.status}).`,
-        );
-      }
-    }
-
     if (isNative) {
       await Browser.open({ url: data.url });
     } else {

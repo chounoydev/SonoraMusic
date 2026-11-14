@@ -21,7 +21,7 @@ Sonora stores playlist and track metadata in Supabase Postgres. Uploaded audio f
 
    These values are public project configuration. Keep database access protected by the Row Level Security policies installed by the schema.
 
-6. In **Authentication → URL Configuration**, set the Site URL to `http://localhost:3000` and add it to the allowed Redirect URLs.
+6. In **Authentication → URL Configuration**, add `http://localhost:9000/**` to the allowed Redirect URLs. Set the Site URL to `http://localhost:9000` for a local-only project; if this project is deployed, keep its Site URL set to the production origin and add localhost as an additional Redirect URL.
 7. Under **Authentication → Providers → Email**, enable Email. If **Confirm email** is enabled, users must open the confirmation link sent after signup before signing in. If they try to sign in early, Sonora explains the issue and offers to resend the link. To allow immediate sign-in without email verification, turn **Confirm email** off in Supabase; this is a project-wide security setting.
 8. Supabase's default email service is for testing: it is limited to about two messages per hour and only sends to authorized project team addresses. If signup shows an email sending error, stop retrying and check **Authentication → Users** to see whether the account was created. For signup emails to other addresses and reliable delivery, configure a custom SMTP provider under **Authentication → SMTP Settings**. See [Supabase's custom SMTP guide](https://supabase.com/docs/guides/auth/auth-smtp).
 9. Restart the Quasar development server after changing `.env`.
@@ -29,7 +29,7 @@ Sonora stores playlist and track metadata in Supabase Postgres. Uploaded audio f
 ### Automatic YouTube search
 
 1. In Google Cloud Console, select or create a project and enable **YouTube Data API v3**.
-2. Create an API key. Restrict it to **YouTube Data API v3** and to your app's HTTP referrers, such as `http://localhost:3000/*` and your deployed app origin. For the Android Capacitor app, also allow `https://localhost/*`.
+2. Create an API key. Restrict it to **YouTube Data API v3** and to your app's HTTP referrers, such as `http://localhost:9000/*` and your deployed app origin. For the Android Capacitor app, also allow `https://localhost/*`.
 3. Put the key in `.env` as `VITE_YOUTUBE_API_KEY` and restart the app. This key is sent to browsers, so keep its API and referrer restrictions enabled; do not commit `.env`.
 
 When a demo song has no recording linked, Sonora searches YouTube by title and artist and presents embeddable matches to choose from. Selecting a result uses YouTube's embedded player; availability and playback restrictions are controlled by YouTube.
@@ -73,7 +73,7 @@ The application runs entirely in the browser. It uses Supabase's browser client 
    Use the same Supabase project where the schema and migrations are installed. Set the YouTube key's API restriction to **YouTube Data API v3** and its website restriction to your production domain, for example `https://your-app.vercel.app/*`. Also allow `https://localhost/*` if you use YouTube search in the Android app. Add a custom domain or a specific preview URL only if that deployment needs YouTube search. Never add a Supabase service-role key or other server secret as a `VITE_*` variable.
 
 4. Deploy. Vite reads these values at build time, so redeploy after adding or changing them. For a build failure, check the Vercel build log and confirm the project is using a supported Node version from `package.json`.
-5. In Supabase, open **Authentication → URL Configuration**. Set **Site URL** to your production origin only (scheme and hostname, with no route such as `/login`), for example `https://your-app.vercel.app`. Add `https://your-app.vercel.app/**` to **Redirect URLs**. Add local development URLs such as `http://localhost:3000/**` as additional redirect entries only when needed; do not use localhost as the production Site URL. Add your custom domain and any required preview URLs too. Without these entries, confirmation, password-reset, and Google OAuth return flows may be rejected or use the wrong destination.
+5. In Supabase, open **Authentication → URL Configuration**. Set **Site URL** to your production origin only (scheme and hostname, with no route such as `/login`), for example `https://your-app.vercel.app`. Add `https://your-app.vercel.app/**` to **Redirect URLs**. Add `http://localhost:9000/**` as an additional redirect entry for local development; do not use localhost as the production Site URL. Add your custom domain and any required preview URLs too. Without these entries, confirmation, password-reset, and Google OAuth return flows may be rejected or use the wrong destination.
 6. If Google sign-in is enabled, confirm the provider is enabled for the same Supabase project and the Google OAuth client has Supabase's callback URL in its authorized redirect URIs.
 7. Open the deployed app, sign in, and verify library loading, password-reset links, and YouTube search. Vercel Preview deployments have distinct URLs; add their exact hostnames to Supabase redirect allowlists and YouTube referrer restrictions only when you need those flows to work in previews.
 

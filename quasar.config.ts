@@ -86,7 +86,8 @@ export default defineConfig((/* ctx */) => {
     devServer: {
       // vueDevtools: true,
       // https: true,
-      port: 3000,
+      port: 9000,
+      strictPort: true,
       open: true, // opens browser window automatically
     },
 

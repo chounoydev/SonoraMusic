@@ -72,6 +72,7 @@
         <button
           class="icon-utility yt-topbar-btn"
           :aria-label="darkMode ? 'Switch to light theme' : 'Switch to dark theme'"
+          :aria-pressed="darkMode"
           @click="toggleTheme"
         >
           <q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" />
@@ -105,10 +106,12 @@
             <q-icon name="file_upload" /> Upload music
           </button>
           <button
+            type="button"
             @click="
               toggleTheme();
               profileMenu = false;
             "
+            :aria-pressed="darkMode"
           >
             <q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" />
             {{ darkMode ? 'Light appearance' : 'Dark appearance' }}
@@ -189,10 +192,6 @@
               <q-icon name="download" class="yt-nav-icon" />
               <span>Download Android app</span>
             </a>
-            <button class="side-link yt-nav-link mobile-sign-out" @click="$emit('sign-out')">
-              <q-icon name="logout" class="yt-nav-icon" />
-              <span>Sign out</span>
-            </button>
           </div>
 
           <div class="yt-nav-divider" />
@@ -244,6 +243,37 @@
             </div>
           </div>
         </nav>
+        <div class="mobile-account-panel">
+          <div class="mobile-account-identity">
+            <span class="profile-avatar">{{
+              props.userEmail.charAt(0).toLocaleUpperCase() || 'A'
+            }}</span>
+            <div class="mobile-account-copy">
+              <strong>{{ listenerDisplayName }}</strong>
+              <small>{{ props.userEmail }}</small>
+            </div>
+          </div>
+          <div class="mobile-account-actions">
+            <button
+              type="button"
+              class="mobile-account-action"
+              :aria-label="darkMode ? 'Switch to light theme' : 'Switch to dark theme'"
+              :aria-pressed="darkMode"
+              @click="toggleTheme"
+            >
+              <q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" />
+              <span>{{ darkMode ? 'Light mode' : 'Dark mode' }}</span>
+            </button>
+            <button
+              type="button"
+              class="mobile-account-action mobile-account-sign-out"
+              @click="$emit('sign-out')"
+            >
+              <q-icon name="logout" />
+              <span>Sign out</span>
+            </button>
+          </div>
+        </div>
       </aside>
       <button
         v-if="sidebarOpen"
